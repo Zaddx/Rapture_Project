@@ -67,6 +67,7 @@
     <ClCompile Include="Common\DeviceResources.cpp">
       <Filter>Common\Source</Filter>
     </ClCompile>
+    <ClCompile Include="ObjLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Content\Sample3DSceneRenderer.h">
@@ -99,6 +100,7 @@
     <ClInclude Include="Common\StepTimer.h">
       <Filter>Common\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="ObjLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
