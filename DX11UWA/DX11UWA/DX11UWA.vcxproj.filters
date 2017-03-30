@@ -44,6 +44,9 @@
     <Filter Include="Common\Source">
       <UniqueIdentifier>{6ce5511b-6e37-49a1-8d5e-bfa27029cc93}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Models">
+      <UniqueIdentifier>{234be123-9885-4a80-82fd-1dbb3fb5d47f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -68,6 +71,7 @@
       <Filter>Common\Source</Filter>
     </ClCompile>
     <ClCompile Include="ObjLoader.cpp" />
+    <ClCompile Include="Content\DDSTextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Content\Sample3DSceneRenderer.h">
@@ -101,6 +105,8 @@
       <Filter>Common\Headers</Filter>
     </ClInclude>
     <ClInclude Include="ObjLoader.h" />
+    <ClInclude Include="Content\DDSTextureLoader.h" />
+    <ClInclude Include="Structures.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -112,6 +118,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="DX11UWA_TemporaryKey.pfx" />
+    <None Include="Assets\Models\test pyramid.obj" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
@@ -120,5 +127,10 @@
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Assets\Models\Bioshock_Label.obj">
+      <Filter>Assets\Models</Filter>
+    </Object>
   </ItemGroup>
 </Project>

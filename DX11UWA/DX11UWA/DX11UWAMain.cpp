@@ -24,7 +24,6 @@ DX11UWAMain::DX11UWAMain(const std::shared_ptr<DX::DeviceResources>& deviceResou
 	
 	//m_timer.SetFixedTimeStep(true);
 	//m_timer.SetTargetElapsedSeconds(1.0 / 60);
-	
 }
 
 DX11UWAMain::~DX11UWAMain(void)

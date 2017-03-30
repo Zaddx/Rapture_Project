@@ -1,0 +1,25 @@
+#pragma once
+#include <vector>
+
+struct Model
+{
+	// Direct 3D resources for the model
+	// ComPtr are safe to share
+	Microsoft::WRL::ComPtr<ID3D11InputLayout>	_inputLayout;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>		_vertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>		_indexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader>	_vertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	_pixelShader;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>		_constantBuffer;
+
+	// Stuff that individuals models will have
+	std::vector<DirectX::XMFLOAT3>				_vertices;
+	std::vector<DirectX::XMFLOAT2>				_uvs;
+	std::vector<DirectX::XMFLOAT3>				_normals;
+
+	// Path to the texture if it exists
+	const char 									*_texture_path;
+
+	// The World Matrix
+	DirectX::XMMATRIX							_world_matrix;
+};
