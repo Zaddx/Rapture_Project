@@ -3,6 +3,12 @@
 
 struct Model
 {
+	// For rendering
+	bool _loadingComplete;
+
+	// Index Count
+	uint32	_indexCount;
+
 	// Direct 3D resources for the model
 	// ComPtr are safe to share
 	Microsoft::WRL::ComPtr<ID3D11InputLayout>	_inputLayout;
@@ -22,4 +28,5 @@ struct Model
 
 	// The World Matrix
 	DirectX::XMMATRIX							_world_matrix;
+
 };

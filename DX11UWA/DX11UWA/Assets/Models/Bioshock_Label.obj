@@ -1,9 +1,11 @@
-# File produced by Open Asset Import Library (http://www.assimp.sf.net)
-# (assimp v3.1.187496374)
-
-mtllib Bioshock.obj.mtl
+#mtllib Bioshock.obj.mtl
 
 # 1167 vertex positions
+# 0 UV coordinates
+# 645 vertex normals
+# Mesh '<STL_BINARY>' with 2330 faces
+# g <STL_BINARY>
+# usemtl DefaultMaterial
 v  -2.50117 0.127 -2.11492
 v  -2.50117 0.127 -2.3463
 v  -2.50117 0.1651 -2.11492
@@ -1171,10 +1173,6 @@ v  -5.48986 0 -0.843303
 v  -7.11298 0 -2.50724
 v  -4.064 0 -2.94429
 v  -0.988343 0 -2.50724
-
-# 0 UV coordinates
-
-# 645 vertex normals
 vn 1 0 0
 vn 0 0 1
 vn -1 0 0
@@ -1820,10 +1818,6 @@ vn -0.0274715 0 0.999623
 vn -0.141893 0 -0.989882
 vn 0.140687 0 -0.990054
 vn -0 -1 -0
-
-# Mesh '<STL_BINARY>' with 2330 faces
-g <STL_BINARY>
-usemtl DefaultMaterial
 f  1//1 2//1 3//1
 f  3//1 2//1 4//1
 f  5//2 1//2 6//2

@@ -3,7 +3,10 @@
 #include "..\Common\DeviceResources.h"
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
+
+// My Header Files
 #include "ObjLoader.h"
+#include "Structures.h"
 
 namespace DX11UWA
 {
@@ -62,7 +65,8 @@ namespace DX11UWA
 		DirectX::XMFLOAT4X4 m_camera;
 
 		// My Model Variables/Resources
-
+		Model test_pyramid_model;
+		Model bioshock_label_model;
 	};
 }
 

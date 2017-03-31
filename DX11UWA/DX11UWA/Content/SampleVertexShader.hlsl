@@ -12,7 +12,7 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 struct VertexShaderInput
 {
 	float3 pos : POSITION;
-	float3 uv : UV;
+	//float3 uv : UV;
 };
 
 // Per-pixel color data passed through the pixel shader.
@@ -35,7 +35,7 @@ PixelShaderInput main(VertexShaderInput input)
 	output.pos = pos;
 
 	// Pass the color through without modification.
-	output.uv = input.uv;
+	output.uv = float3(1,1,1);
 
 	return output;
 }
