@@ -54,6 +54,10 @@ namespace DX11UWA
 		ModelViewProjectionConstantBuffer	m_constantBufferData;
 		uint32	m_indexCount;
 
+		// To draw additional Cubes
+		ModelViewProjectionConstantBuffer m_constantBufferData_2;
+		ModelViewProjectionConstantBuffer m_constantBufferData_3;
+
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
 		float	m_degreesPerSecond;
@@ -68,8 +72,10 @@ namespace DX11UWA
 		DirectX::XMFLOAT4X4 m_camera;
 
 		// My Model Variables/Resources
+
+		// Test Pyramid 
 		Model test_pyramid_model;
-		Model bioshock_label_model;
+		ModelViewProjectionConstantBuffer m_constantBufferData_pyramid;
 	};
 }
 

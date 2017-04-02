@@ -28,5 +28,4 @@ struct Model
 
 	// The World Matrix
 	DirectX::XMMATRIX							_world_matrix;
-
 };
