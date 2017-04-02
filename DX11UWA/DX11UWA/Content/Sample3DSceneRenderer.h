@@ -8,6 +8,9 @@
 #include "ObjLoader.h"
 #include "Structures.h"
 
+// Texture header file
+#include "DDSTextureLoader.h"
+
 namespace DX11UWA
 {
 	// This sample renderer instantiates a basic rendering pipeline.

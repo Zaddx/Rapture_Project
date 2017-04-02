@@ -210,35 +210,34 @@ void Sample3DSceneRenderer::Render(void)
 
 #pragma region Cube
 
-	//// Loading is asynchronous. Only draw geometry after it's loaded.
-	//if (!m_loadingComplete)
-	//{
-	//	return;
-	//}
+	// Loading is asynchronous. Only draw geometry after it's loaded.
+	if (!m_loadingComplete)
+	{
+		return;
+	}
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
 	XMStoreFloat4x4(&m_constantBufferData.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 
-
-	//// Prepare the constant buffer to send it to the graphics device.
+	// Prepare the constant buffer to send it to the graphics device.
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
-	//// Each vertex is one instance of the VertexPositionColor struct.
-	//UINT stride = sizeof(VertexPositionColor);
-	//UINT offset = 0;
-	//context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
-	//// Each index is one 16-bit unsigned integer (short).
-	//context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-	//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//context->IASetInputLayout(m_inputLayout.Get());
-	//// Attach our vertex shader.
-	//context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
-	//// Send the constant buffer to the graphics device.
-	//context->VSSetConstantBuffers1(0, 1, m_constantBuffer.GetAddressOf(), nullptr, nullptr);
-	//// Attach our pixel shader.
-	//context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
-	//// Draw the objects.
-	//context->DrawIndexed(m_indexCount, 0, 0);
+	// Each vertex is one instance of the VertexPositionColor struct.
+	UINT stride = sizeof(VertexPositionColor);
+	UINT offset = 0;
+	context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
+	// Each index is one 16-bit unsigned integer (short).
+	context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	context->IASetInputLayout(m_inputLayout.Get());
+	// Attach our vertex shader.
+	context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(0, 1, m_constantBuffer.GetAddressOf(), nullptr, nullptr);
+	// Attach our pixel shader.
+	context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
+	// Draw the objects.
+	context->DrawIndexed(m_indexCount, 0, 0);
 
 #pragma endregion
 
@@ -261,26 +260,6 @@ void Sample3DSceneRenderer::Render(void)
 
 #pragma endregion
 
-#pragma region Bioshock Label Model
-
-	if (!bioshock_label_model._loadingComplete)
-	{
-		return;
-	}
-
-	UINT label_stride = sizeof(XMFLOAT3);
-	UINT label_offset = 0;
-	context->IASetVertexBuffers(0, 1, bioshock_label_model._vertexBuffer.GetAddressOf(), &label_stride, &label_offset);
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	context->IASetInputLayout(bioshock_label_model._inputLayout.Get());
-	context->VSSetShader(bioshock_label_model._vertexShader.Get(), nullptr, 0);
-	context->VSSetConstantBuffers1(0, 1, m_constantBuffer.GetAddressOf(), nullptr, nullptr);
-	context->PSSetShader(bioshock_label_model._pixelShader.Get(), nullptr, 0);
-	context->Draw(bioshock_label_model._indexCount, 0);
-
-#pragma endregion
-
-
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
@@ -296,10 +275,117 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma region Cube
 
+	//// After the vertex shader file is loaded, create the shader and input layout.
+	//auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData)
+	//{
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&fileData[0], fileData.size(), nullptr, &m_vertexShader));
+
+	//	static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	//	{
+	//		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//		{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	};
+
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), &fileData[0], fileData.size(), &m_inputLayout));
+	//});
+
+	//// After the pixel shader file is loaded, create the shader and constant buffer.
+	//auto createPSTask = loadPSTask.then([this](const std::vector<byte>& fileData)
+	//{
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&fileData[0], fileData.size(), nullptr, &m_pixelShader));
+
+	//	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer));
+	//});
+
+	//// Once both shaders are loaded, create the mesh.
+	//auto createCubeTask = (createPSTask && createVSTask).then([this]()
+	//{
+	//	// Load mesh vertices. Each vertex has a position and a color.
+	//	static const VertexPositionColor cubeVertices[] =
+	//	{
+	//		{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+	//		{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+	//		{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+	//		{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+	//		{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+	//		{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+	//		{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+	//		{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+	//	};
+
+	//	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+	//	vertexBufferData.pSysMem = cubeVertices;
+	//	vertexBufferData.SysMemPitch = 0;
+	//	vertexBufferData.SysMemSlicePitch = 0;
+	//	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &m_vertexBuffer));
+
+	//	// Load mesh indices. Each trio of indices represents
+	//	// a triangle to be rendered on the screen.
+	//	// For example: 0,2,1 means that the vertices with indexes
+	//	// 0, 2 and 1 from the vertex buffer compose the 
+	//	// first triangle of this mesh.
+	//	static const unsigned short cubeIndices[] =
+	//	{
+	//		0,1,2, // -x
+	//		1,3,2,
+
+	//		4,6,5, // +x
+	//		5,6,7,
+
+	//		0,5,1, // -y
+	//		0,4,5,
+
+	//		2,7,6, // +y
+	//		2,3,7,
+
+	//		0,6,4, // -z
+	//		0,2,6,
+
+	//		1,7,3, // +z
+	//		1,5,7,
+	//	};
+
+	//	m_indexCount = ARRAYSIZE(cubeIndices);
+
+	//	D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+	//	indexBufferData.pSysMem = cubeIndices;
+	//	indexBufferData.SysMemPitch = 0;
+	//	indexBufferData.SysMemSlicePitch = 0;
+	//	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_indexBuffer));
+	//});
+
+	//// Once the cube is loaded, the object is ready to be rendered.
+	//createCubeTask.then([this]()
+	//{
+	//	m_loadingComplete = true;
+	//});
+
+#pragma endregion
+
+#pragma region Textured Cube
+
+	ID3D11Resource *tex_resource;
+	ID3D11ShaderResourceView *tex_view;
+
+	auto context = m_deviceResources->GetD3DDeviceContext();
+	ID3D11Device *device;
+	context->GetDevice(&device);
+	const char *path = "Assets/Textures/Box_Red2Dark.dds";
+
+	size_t pathSize = strlen(path) + 1;
+	wchar_t *wc = new wchar_t[pathSize];
+	mbstowcs(&wc[0], path, pathSize);
+
+	HRESULT hr;
+	hr = CreateDDSTextureFromFile(device, wc, &tex_resource, &tex_view);
+
 	// After the vertex shader file is loaded, create the shader and input layout.
-	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData)
+	auto createTexturedVSTask = loadVSTask.then([this](const std::vector<byte>& textured_fileData)
 	{
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&fileData[0], fileData.size(), nullptr, &m_vertexShader));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&textured_fileData[0], textured_fileData.size(), nullptr, &m_vertexShader));
 
 		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 		{
@@ -307,23 +393,23 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), &fileData[0], fileData.size(), &m_inputLayout));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), &textured_fileData[0], textured_fileData.size(), &m_inputLayout));
 	});
 
 	// After the pixel shader file is loaded, create the shader and constant buffer.
-	auto createPSTask = loadPSTask.then([this](const std::vector<byte>& fileData)
+	auto createTexturedPSTask = loadPSTask.then([this](const std::vector<byte>& textured_fileData)
 	{
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&fileData[0], fileData.size(), nullptr, &m_pixelShader));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&textured_fileData[0], textured_fileData.size(), nullptr, &m_pixelShader));
 
 		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer));
 	});
 
 	// Once both shaders are loaded, create the mesh.
-	auto createCubeTask = (createPSTask && createVSTask).then([this]()
+	auto createTexturedCubeTask = (createTexturedPSTask && createTexturedVSTask).then([this]()
 	{
 		// Load mesh vertices. Each vertex has a position and a color.
-		static const VertexPositionColor cubeVertices[] =
+		static const VertexPositionColor texturedcubeVertices[] =
 		{
 			{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
 			{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
@@ -335,19 +421,19 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
 		};
 
-		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-		vertexBufferData.pSysMem = cubeVertices;
-		vertexBufferData.SysMemPitch = 0;
-		vertexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &m_vertexBuffer));
+		D3D11_SUBRESOURCE_DATA texturedCube_vertexBufferData = { 0 };
+		texturedCube_vertexBufferData.pSysMem = texturedcubeVertices;
+		texturedCube_vertexBufferData.SysMemPitch = 0;
+		texturedCube_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC texturedCube_vertexBufferDesc(sizeof(texturedcubeVertices), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&texturedCube_vertexBufferDesc, &texturedCube_vertexBufferData, &m_vertexBuffer));
 
 		// Load mesh indices. Each trio of indices represents
 		// a triangle to be rendered on the screen.
 		// For example: 0,2,1 means that the vertices with indexes
 		// 0, 2 and 1 from the vertex buffer compose the 
 		// first triangle of this mesh.
-		static const unsigned short cubeIndices[] =
+		static const unsigned short texturedcubeIndices[] =
 		{
 			0,1,2, // -x
 			1,3,2,
@@ -368,144 +454,83 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			1,5,7,
 		};
 
-		m_indexCount = ARRAYSIZE(cubeIndices);
+		m_indexCount = ARRAYSIZE(texturedcubeIndices);
 
-		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-		indexBufferData.pSysMem = cubeIndices;
-		indexBufferData.SysMemPitch = 0;
-		indexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_indexBuffer));
+		D3D11_SUBRESOURCE_DATA texturedCube_indexBufferData = { 0 };
+		texturedCube_indexBufferData.pSysMem = texturedcubeIndices;
+		texturedCube_indexBufferData.SysMemPitch = 0;
+		texturedCube_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC texturedCube_indexBufferDesc(sizeof(texturedcubeIndices), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&texturedCube_indexBufferDesc, &texturedCube_indexBufferData, &m_indexBuffer));
 	});
 
 	// Once the cube is loaded, the object is ready to be rendered.
-	createCubeTask.then([this]()
+	createTexturedCubeTask.then([this]()
 	{
 		m_loadingComplete = true;
 	});
 
 #pragma endregion
 
+
 #pragma region Test Pyramid Model
 
-	// After the vertex shader file is loaded, create the shader and input layout.
-	auto createVSTasPyramidkModel = loadVSTaskModel.then([this](const std::vector<byte>& pyramid_fileData)
-	{
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&pyramid_fileData[0], pyramid_fileData.size(), nullptr, &test_pyramid_model._vertexShader));
+	//// After the vertex shader file is loaded, create the shader and input layout.
+	//auto createVSTasPyramidkModel = loadVSTaskModel.then([this](const std::vector<byte>& pyramid_fileData)
+	//{
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&pyramid_fileData[0], pyramid_fileData.size(), nullptr, &test_pyramid_model._vertexShader));
 
-		static const D3D11_INPUT_ELEMENT_DESC pyramid_vertexDesc[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			//{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			//{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
+	//	static const D3D11_INPUT_ELEMENT_DESC pyramid_vertexDesc[] =
+	//	{
+	//		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//		//{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//		//{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	};
 
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(pyramid_vertexDesc, ARRAYSIZE(pyramid_vertexDesc), &pyramid_fileData[0], pyramid_fileData.size(), &test_pyramid_model._inputLayout));
-	});
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(pyramid_vertexDesc, ARRAYSIZE(pyramid_vertexDesc), &pyramid_fileData[0], pyramid_fileData.size(), &test_pyramid_model._inputLayout));
+	//});
 
-	// After the pixel shader file is loaded, create the shader and constant buffer.
-	auto createPSTaskPyramidModel = loadPSTaskModel.then([this](const std::vector<byte>& pyramid_fileData)
-	{
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&pyramid_fileData[0], pyramid_fileData.size(), nullptr, &test_pyramid_model._pixelShader));
+	//// After the pixel shader file is loaded, create the shader and constant buffer.
+	//auto createPSTaskPyramidModel = loadPSTaskModel.then([this](const std::vector<byte>& pyramid_fileData)
+	//{
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&pyramid_fileData[0], pyramid_fileData.size(), nullptr, &test_pyramid_model._pixelShader));
 
-		CD3D11_BUFFER_DESC pyramid_constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&pyramid_constantBufferDesc, nullptr, &test_pyramid_model._constantBuffer));
-	});
+	//	CD3D11_BUFFER_DESC pyramid_constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&pyramid_constantBufferDesc, nullptr, &test_pyramid_model._constantBuffer));
+	//});
 
-	// Once both shaders are loaded, create the mesh.
-	auto createPyramidTaskModel = (createPSTaskPyramidModel && createVSTasPyramidkModel).then([this]()
-	{
-		// Load mesh vertices. Each vertex has a position and a color.
-		std::vector<DirectX::XMFLOAT3> pyramid_vertices;
-		std::vector<DirectX::XMFLOAT3> pyramid_normals;
-		std::vector<DirectX::XMFLOAT2> pyramid_uvs;
+	//// Once both shaders are loaded, create the mesh.
+	//auto createPyramidTaskModel = (createPSTaskPyramidModel && createVSTasPyramidkModel).then([this]()
+	//{
+	//	// Load mesh vertices. Each vertex has a position and a color.
+	//	std::vector<DirectX::XMFLOAT3> pyramid_vertices;
+	//	std::vector<DirectX::XMFLOAT3> pyramid_normals;
+	//	std::vector<DirectX::XMFLOAT2> pyramid_uvs;
 
-		loadOBJ("Assets/Models/test pyramid.obj", pyramid_vertices, pyramid_uvs, pyramid_normals);
+	//	loadOBJ("Assets/Models/test pyramid.obj", pyramid_vertices, pyramid_uvs, pyramid_normals);
 
-		D3D11_SUBRESOURCE_DATA pyramid_vertexBufferData = { 0 };
-		pyramid_vertexBufferData.pSysMem = pyramid_vertices.data();
-		pyramid_vertexBufferData.SysMemPitch = 0;
-		pyramid_vertexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC pyramid_vertexBufferDesc(sizeof(DirectX::XMFLOAT3) * pyramid_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&pyramid_vertexBufferDesc, &pyramid_vertexBufferData, &test_pyramid_model._vertexBuffer));
+	//	D3D11_SUBRESOURCE_DATA pyramid_vertexBufferData = { 0 };
+	//	pyramid_vertexBufferData.pSysMem = pyramid_vertices.data();
+	//	pyramid_vertexBufferData.SysMemPitch = 0;
+	//	pyramid_vertexBufferData.SysMemSlicePitch = 0;
+	//	CD3D11_BUFFER_DESC pyramid_vertexBufferDesc(sizeof(DirectX::XMFLOAT3) * pyramid_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&pyramid_vertexBufferDesc, &pyramid_vertexBufferData, &test_pyramid_model._vertexBuffer));
 
-		test_pyramid_model._indexCount = pyramid_vertices.size();
+	//	test_pyramid_model._indexCount = pyramid_vertices.size();
 
-		/*D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-		indexBufferData.pSysMem = cubeIndices;
-		indexBufferData.SysMemPitch = 0;
-		indexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, &test_pyramid_model.m_indexBuffer));*/
-	});
+	//	/*D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+	//	indexBufferData.pSysMem = cubeIndices;
+	//	indexBufferData.SysMemPitch = 0;
+	//	indexBufferData.SysMemSlicePitch = 0;
+	//	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, &test_pyramid_model.m_indexBuffer));*/
+	//});
 
-	// Once the cube is loaded, the object is ready to be rendered.
-	createPyramidTaskModel.then([this]()
-	{
-		test_pyramid_model._loadingComplete = true;
-	});
-
-#pragma endregion
-
-
-#pragma region Bioshock Label Model
-
-	// After the vertex shader file is loaded, create the shader and input layout.
-	auto createVSTaskLabelModel = loadVSTaskModel.then([this](const std::vector<byte>& label_fileData)
-	{
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&label_fileData[0], label_fileData.size(), nullptr, &bioshock_label_model._vertexShader));
-
-		static const D3D11_INPUT_ELEMENT_DESC label_vertexDesc[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			//{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			//{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
-
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(label_vertexDesc, ARRAYSIZE(label_vertexDesc), &label_fileData[0], label_fileData.size(), &bioshock_label_model._inputLayout));
-	});
-
-	// After the pixel shader file is loaded, create the shader and constant buffer.
-	auto createPSTaskLabelModel = loadPSTaskModel.then([this](const std::vector<byte>& label_fileData)
-	{
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&label_fileData[0], label_fileData.size(), nullptr, &bioshock_label_model._pixelShader));
-
-		CD3D11_BUFFER_DESC label_constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&label_constantBufferDesc, nullptr, &bioshock_label_model._constantBuffer));
-	});
-
-	// Once both shaders are loaded, create the mesh.
-	auto createlabelTaskModel = (createPSTaskLabelModel && createVSTaskLabelModel).then([this]()
-	{
-		// Load mesh vertices. Each vertex has a position and a color.
-		std::vector<DirectX::XMFLOAT3> label_vertices;
-		std::vector<DirectX::XMFLOAT3> label_normals;
-		std::vector<DirectX::XMFLOAT2> label_uvs;
-
-		loadOBJ("Assets/Models/Bioshock_Label.obj", label_vertices, label_uvs, label_normals);
-
-		D3D11_SUBRESOURCE_DATA label_vertexBufferData = { 0 };
-		label_vertexBufferData.pSysMem = label_vertices.data();
-		label_vertexBufferData.SysMemPitch = 0;
-		label_vertexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC label_vertexBufferDesc(sizeof(DirectX::XMFLOAT3) * label_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&label_vertexBufferDesc, &label_vertexBufferData, &bioshock_label_model._vertexBuffer));
-
-		bioshock_label_model._indexCount = label_vertices.size();
-
-		/*D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-		indexBufferData.pSysMem = cubeIndices;
-		indexBufferData.SysMemPitch = 0;
-		indexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, &bioshock_label_model.m_indexBuffer));*/
-	});
-
-	// Once the cube is loaded, the object is ready to be rendered.
-	createlabelTaskModel.then([this]()
-	{
-		bioshock_label_model._loadingComplete = true;
-	});
+	//// Once the cube is loaded, the object is ready to be rendered.
+	//createPyramidTaskModel.then([this]()
+	//{
+	//	test_pyramid_model._loadingComplete = true;
+	//});
 
 #pragma endregion
 

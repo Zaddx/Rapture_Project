@@ -47,6 +47,9 @@
     <Filter Include="Assets\Models">
       <UniqueIdentifier>{234be123-9885-4a80-82fd-1dbb3fb5d47f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Textures">
+      <UniqueIdentifier>{28315f6e-df81-4570-b556-59b2365efd3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -112,6 +115,9 @@
     <Image Include="Assets\StoreLogo.png">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="Assets\Textures\Box_Red2Dark.dds">
+      <Filter>Assets\Textures</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -119,6 +125,7 @@
   <ItemGroup>
     <None Include="DX11UWA_TemporaryKey.pfx" />
     <None Include="Assets\Models\test pyramid.obj" />
+    <None Include="Assets\Models\Bioshock_Label.obj" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
@@ -127,10 +134,5 @@
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="Assets\Models\Bioshock_Label.obj">
-      <Filter>Assets\Models</Filter>
-    </Object>
   </ItemGroup>
 </Project>
