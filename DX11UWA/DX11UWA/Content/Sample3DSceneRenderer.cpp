@@ -294,7 +294,7 @@ void Sample3DSceneRenderer::Render(void)
 	XMStoreFloat4x4(&m_constantBufferData_pyramid.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 
 	// Setup Vertex Buffer
-	UINT pyramid_stride = sizeof(XMFLOAT3);
+	UINT pyramid_stride = sizeof(DX11UWA::VertexPositionColor);
 	UINT pyramid_offset = 0;
 	context->IASetVertexBuffers(0, 1, test_pyramid_model._vertexBuffer.GetAddressOf(), &pyramid_stride, &pyramid_offset);
 	

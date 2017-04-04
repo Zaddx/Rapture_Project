@@ -143,8 +143,8 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 		DirectX::XMFLOAT3 normal = temp_normals[normalIndex - 1];
 
 		// Apply the Lighting to the model
-		float lightRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(directionalLight.pos, -1.0f), normal), 1.0f, 0.0f);
-		temp.color = Lerp(temp.color, directionalLight.color, lightRatio);
+		//float lightRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(directionalLight.pos, -1.0f), normal), 1.0f, 0.0f);
+		//temp.color = Lerp(temp.color, directionalLight.color, lightRatio);
 
 		vertices.push_back(temp);
 		indices.push_back(i);
