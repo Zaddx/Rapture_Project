@@ -118,6 +118,9 @@
     <Image Include="Assets\Textures\Box_Red2Dark.dds">
       <Filter>Assets\Textures</Filter>
     </Image>
+    <Image Include="Assets\Textures\Big_Daddy_Texture.dds">
+      <Filter>Assets\Textures</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -126,6 +129,9 @@
     <None Include="DX11UWA_TemporaryKey.pfx" />
     <None Include="Assets\Models\test pyramid.obj" />
     <None Include="Assets\Models\Bioshock_Label.obj" />
+    <None Include="Assets\Models\Big_Daddy.obj">
+      <Filter>Assets\Models</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">

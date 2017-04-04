@@ -57,6 +57,9 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData_2.projection, (perspectiveMatrix * orientationMatrix));
 	XMStoreFloat4x4(&m_constantBufferData_3.projection, (perspectiveMatrix * orientationMatrix));
 	XMStoreFloat4x4(&m_constantBufferData_pyramid.projection, (perspectiveMatrix * orientationMatrix));
+	XMStoreFloat4x4(&m_constantBufferData_pyramid2.projection, (perspectiveMatrix * orientationMatrix));
+	XMStoreFloat4x4(&m_constantBufferData_pyramid3.projection, (perspectiveMatrix * orientationMatrix));
+	XMStoreFloat4x4(&m_constantBufferData_big_daddy.projection, (perspectiveMatrix * orientationMatrix));
 
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
@@ -71,7 +74,9 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData_2.view, (XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_constantBufferData_3.view, (XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_constantBufferData_pyramid.view, (XMMatrixLookAtLH(eye, at, up)));
-
+	XMStoreFloat4x4(&m_constantBufferData_pyramid2.view, (XMMatrixLookAtLH(eye, at, up)));
+	XMStoreFloat4x4(&m_constantBufferData_pyramid3.view, (XMMatrixLookAtLH(eye, at, up)));
+	XMStoreFloat4x4(&m_constantBufferData_big_daddy.view, (XMMatrixLookAtLH(eye, at, up)));
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -111,10 +116,25 @@ void Sample3DSceneRenderer::Rotate(float radians)
 
 	XMStoreFloat4x4(&m_constantBufferData_3.model, (XMMatrixMultiply(rotationZ, translationXY)));
 
-	// Translate the position then rotation it on the Y (Pyramid)
+	// Translate the position (Pyramid)
 	XMMATRIX pyramid_translationX = XMMatrixTranslation(-1.5f, 0, 0);
 
 	XMStoreFloat4x4(&m_constantBufferData_pyramid.model, pyramid_translationX);
+
+	// Translate the position (Pyramid 2)
+	XMMATRIX pyramid2_translationXY = XMMatrixTranslation(-1.5f, 1.0f, 0);
+
+	XMStoreFloat4x4(&m_constantBufferData_pyramid2.model, pyramid2_translationXY);
+
+	// Translate the position (Pyramid 3)
+	XMMATRIX pyramid3_translationXY = XMMatrixTranslation(-1.5f, 2.0f, 0);
+
+	XMStoreFloat4x4(&m_constantBufferData_pyramid3.model, pyramid3_translationXY);
+
+	// Translate the position (Big Daddy)
+	XMMATRIX bigDaddy_translationX = XMMatrixTranslation(-4.5f, 0, 0);
+
+	XMStoreFloat4x4(&m_constantBufferData_big_daddy.model, bigDaddy_translationX);
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -285,6 +305,8 @@ void Sample3DSceneRenderer::Render(void)
 
 #pragma region Test Pyramid Model
 
+
+	// Load pyramid 1
 	if (!test_pyramid_model._loadingComplete)
 	{
 		return;
@@ -303,6 +325,70 @@ void Sample3DSceneRenderer::Render(void)
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData_pyramid, 0, 0, 0);
 
 	context->DrawIndexed(test_pyramid_model._indexCount, 0, 0);
+	
+	// Load pyramid 2
+	if (!test_pyramid_model2._loadingComplete)
+	{
+		return;
+	}
+
+	XMStoreFloat4x4(&m_constantBufferData_pyramid2.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+
+	// Setup Vertex Buffer
+	UINT pyramid2_stride = sizeof(DX11UWA::VertexPositionColor);
+	UINT pyramid2_offset = 0;
+	context->IASetVertexBuffers(0, 1, test_pyramid_model2._vertexBuffer.GetAddressOf(), &pyramid2_stride, &pyramid2_offset);
+
+	// Set Index buffer
+	context->IASetIndexBuffer(test_pyramid_model2._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData_pyramid2, 0, 0, 0);
+
+	context->DrawIndexed(test_pyramid_model2._indexCount, 0, 0);
+
+
+	// Load Pyramid 3
+	if (!test_pyramid_model3._loadingComplete)
+	{
+		return;
+	}
+
+	XMStoreFloat4x4(&m_constantBufferData_pyramid3.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+
+	// Setup Vertex Buffer
+	UINT pyramid3_stride = sizeof(DX11UWA::VertexPositionColor);
+	UINT pyramid3_offset = 0;
+	context->IASetVertexBuffers(0, 1, test_pyramid_model3._vertexBuffer.GetAddressOf(), &pyramid3_stride, &pyramid3_offset);
+
+	// Set Index buffer
+	context->IASetIndexBuffer(test_pyramid_model3._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData_pyramid3, 0, 0, 0);
+
+	context->DrawIndexed(test_pyramid_model3._indexCount, 0, 0);
+
+#pragma endregion
+
+#pragma region Big Daddy Model
+
+	if (!big_daddy_model._loadingComplete)
+	{
+		return;
+	}
+
+	XMStoreFloat4x4(&m_constantBufferData_big_daddy.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+
+	// Setup Vertex Buffer
+	UINT bigDaddy_stride = sizeof(DX11UWA::VertexPositionColor);
+	UINT bigDaddy_offset = 0;
+	context->IASetVertexBuffers(0, 1, big_daddy_model._vertexBuffer.GetAddressOf(), &bigDaddy_stride, &bigDaddy_offset);
+
+	// Set Index buffer
+	context->IASetIndexBuffer(big_daddy_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData_big_daddy, 0, 0, 0);
+
+	context->DrawIndexed(big_daddy_model._indexCount, 0, 0);
 
 #pragma endregion
 
@@ -409,7 +495,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma endregion
 
-#pragma region Test Pyramid Model
+#pragma region Test Pyramid Model (Both Lights)
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTasPyramidkModel = loadVSTaskModel.then([this](const std::vector<byte>& pyramid_fileData)
@@ -438,6 +524,24 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 		loadOBJ("Assets/Models/test pyramid.obj", pyramid_vertices, pyramid_indices, pyramid_normals);
 
+		// Change the colors of all the Vertices to Sand/Beige
+		for (unsigned int i = 0; i < pyramid_vertices.size(); i++)
+		{
+			DirectX::XMFLOAT3 temp_color_purple, temp_color_beige, temp_color_mixed;
+
+			temp_color_purple.x = .501f;
+			temp_color_purple.y = .000f;
+			temp_color_purple.z = .501f;
+
+			temp_color_beige.x = .933f;
+			temp_color_beige.y = .839f;
+			temp_color_beige.z = .568f;
+
+			temp_color_mixed = Lerp(temp_color_beige, temp_color_purple, 0.5f);
+
+			pyramid_vertices[i].color = temp_color_mixed;
+		}
+
 #if 1
 
 		// Initializing the Directional light
@@ -454,12 +558,41 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			DirectX::XMFLOAT3 temp_Normal = pyramid_normals[i];
 			DirectX::XMFLOAT3 temp_color = pyramid_vertices[i].color;
 
-			// Apply the Lighting to the model
+			// Get the light ratio
 			float lightRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(pyramid_directional_Light.direction, 1.0f), temp_Normal), 1.0f, 0.0f);
-			pyramid_vertices[i].color = Lerp(temp_color, pyramid_directional_Light.color, lightRatio);
+
+			// Apply the new color
+			pyramid_vertices[i].color.x = lightRatio * pyramid_directional_Light.color.x * temp_color.x;
+			pyramid_vertices[i].color.y = lightRatio * pyramid_directional_Light.color.y * temp_color.y;
+			pyramid_vertices[i].color.z = lightRatio * pyramid_directional_Light.color.z * temp_color.z;
+
 		}
 
 #endif // Directional Lighting
+
+#if 1
+
+		// Initialize the Point Light
+		pyramid_point_light.position = { 0.0f, 1.0f, 0.0f };
+		pyramid_point_light.color = { 0.5f, 0.5f, 0.5f };
+
+		for (unsigned int i = 0; i < pyramid_normals.size(); i++)
+		{
+			DirectX::XMFLOAT3 surface_normal = pyramid_normals[i];
+			DirectX::XMFLOAT3 surface_color = pyramid_vertices[i].color;
+			DirectX::XMFLOAT3 surface_position = pyramid_vertices[i].pos;
+
+			// Get the values for the lighting
+			DirectX::XMFLOAT3 lightDir = Vector_Normalize(Vector_Subtraction(pyramid_point_light.position, surface_position));
+			float lightRatio = Clamp(Vector_Dot(lightDir, surface_normal), 1.0f, 0.0f);
+			
+			// Get the new color
+			pyramid_vertices[i].color.x = lightRatio * pyramid_point_light.color.x * surface_color.x;
+			pyramid_vertices[i].color.y = lightRatio * pyramid_point_light.color.y * surface_color.y;
+			pyramid_vertices[i].color.z = lightRatio * pyramid_point_light.color.z * surface_color.z;
+		}
+
+#endif // Point Lighting
 
 		D3D11_SUBRESOURCE_DATA pyramid_vertexBufferData = { 0 };
 		pyramid_vertexBufferData.pSysMem = pyramid_vertices.data();
@@ -482,6 +615,262 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	createPyramidTaskModel.then([this]()
 	{
 		test_pyramid_model._loadingComplete = true;
+	});
+
+#pragma endregion
+
+#pragma region Test Pyramid Model 2 (Point Light)
+
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createVSTasPyramidkModel2 = loadVSTaskModel.then([this](const std::vector<byte>& pyramid2_fileData)
+	{
+		static const D3D11_INPUT_ELEMENT_DESC pyramid2_vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(pyramid2_vertexDesc, ARRAYSIZE(pyramid2_vertexDesc), &pyramid2_fileData[0], pyramid2_fileData.size(), &test_pyramid_model2._inputLayout));
+	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSTaskPyramidModel2 = loadPSTaskModel.then([this](const std::vector<byte>& pyramid2_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&pyramid2_fileData[0], pyramid2_fileData.size(), nullptr, &test_pyramid_model2._pixelShader));
+	});
+
+	// Once both shaders are loaded, create the mesh.
+	auto createPyramidTaskModel2 = (createPSTaskPyramidModel2 && createVSTasPyramidkModel2).then([this]()
+	{
+		std::vector<DX11UWA::VertexPositionColor> pyramid2_vertices;
+		std::vector<DirectX::XMFLOAT3> pyramid2_normals;
+		std::vector<unsigned int> pyramid2_indices;
+
+		loadOBJ("Assets/Models/test pyramid.obj", pyramid2_vertices, pyramid2_indices, pyramid2_normals);
+
+		// Change the colors of all the Vertices to Purple
+		for (unsigned int i = 0; i < pyramid2_vertices.size(); i++)
+		{
+			DirectX::XMFLOAT3 temp_color;
+
+			temp_color.x = .501f;
+			temp_color.y = .000f;
+			temp_color.z = .501f;
+
+			pyramid2_vertices[i].color = temp_color;
+		}
+
+#if 1
+
+		// Initialize the Point Light
+		pyramid_point_light.position = { 0.0f, 1.0f, 0.0f };
+		pyramid_point_light.color = { 0.5f, 0.5f, 0.5f };
+
+		for (unsigned int i = 0; i < pyramid2_normals.size(); i++)
+		{
+			DirectX::XMFLOAT3 surface_normal = pyramid2_normals[i];
+			DirectX::XMFLOAT3 surface_color = pyramid2_vertices[i].color;
+			DirectX::XMFLOAT3 surface_position = pyramid2_vertices[i].pos;
+
+			// Get the values for the lighting
+			DirectX::XMFLOAT3 lightDir = Vector_Normalize(Vector_Subtraction(pyramid_point_light.position, surface_position));
+			float lightRatio = Clamp(Vector_Dot(lightDir, surface_normal), 1.0f, 0.0f);
+
+			// Get the new color
+			pyramid2_vertices[i].color.x = lightRatio * pyramid_point_light.color.x * surface_color.x;
+			pyramid2_vertices[i].color.y = lightRatio * pyramid_point_light.color.y * surface_color.y;
+			pyramid2_vertices[i].color.z = lightRatio * pyramid_point_light.color.z * surface_color.z;
+		}
+
+#endif // Point Lighting
+
+		D3D11_SUBRESOURCE_DATA pyramid2_vertexBufferData = { 0 };
+		pyramid2_vertexBufferData.pSysMem = pyramid2_vertices.data();
+		pyramid2_vertexBufferData.SysMemPitch = 0;
+		pyramid2_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC pyramid2_vertexBufferDesc(sizeof(DX11UWA::VertexPositionColor) * pyramid2_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&pyramid2_vertexBufferDesc, &pyramid2_vertexBufferData, &test_pyramid_model2._vertexBuffer));
+
+		test_pyramid_model2._indexCount = pyramid2_indices.size();
+
+		D3D11_SUBRESOURCE_DATA pyramid2_indexBufferData = { 0 };
+		pyramid2_indexBufferData.pSysMem = pyramid2_indices.data();
+		pyramid2_indexBufferData.SysMemPitch = 0;
+		pyramid2_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC pyramid2_indexBufferDesc(sizeof(unsigned int) * pyramid2_indices.size(), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&pyramid2_indexBufferDesc, &pyramid2_indexBufferData, &test_pyramid_model2._indexBuffer));
+	});
+
+	// Once the cube is loaded, the object is ready to be rendered.
+	createPyramidTaskModel2.then([this]()
+	{
+		test_pyramid_model2._loadingComplete = true;
+	});
+
+#pragma endregion
+
+#pragma region Test Pyramid Model 3 (Directional Light)
+
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createVSTasPyramidkModel3 = loadVSTaskModel.then([this](const std::vector<byte>& pyramid3_fileData)
+	{
+		static const D3D11_INPUT_ELEMENT_DESC pyramid3_vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(pyramid3_vertexDesc, ARRAYSIZE(pyramid3_vertexDesc), &pyramid3_fileData[0], pyramid3_fileData.size(), &test_pyramid_model3._inputLayout));
+	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSTaskPyramidModel3 = loadPSTaskModel.then([this](const std::vector<byte>& pyramid3_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&pyramid3_fileData[0], pyramid3_fileData.size(), nullptr, &test_pyramid_model3._pixelShader));
+	});
+
+	// Once both shaders are loaded, create the mesh.
+	auto createPyramidTaskModel3 = (createPSTaskPyramidModel3 && createVSTasPyramidkModel3).then([this]()
+	{
+		std::vector<DX11UWA::VertexPositionColor> pyramid3_vertices;
+		std::vector<DirectX::XMFLOAT3> pyramid3_normals;
+		std::vector<unsigned int> pyramid3_indices;
+
+		loadOBJ("Assets/Models/test pyramid.obj", pyramid3_vertices, pyramid3_indices, pyramid3_normals);
+
+		// Change the colors of all the Vertices to Sand/Beige
+		for (unsigned int i = 0; i < pyramid3_vertices.size(); i++)
+		{
+			DirectX::XMFLOAT3 temp_color;
+
+			temp_color.x = .933f;
+			temp_color.y = .839f;
+			temp_color.z = .568f;
+
+			pyramid3_vertices[i].color = temp_color;
+		}
+
+#if 1
+
+		// Initializing the Directional light
+		pyramid_directional_Light.direction.x = 0.0f;
+		pyramid_directional_Light.direction.y = 1.0f;
+		pyramid_directional_Light.direction.z = -0.5f;
+
+		pyramid_directional_Light.color.x = 0.5f;
+		pyramid_directional_Light.color.y = 0.5f;
+		pyramid_directional_Light.color.z = 0.5f;
+
+		for (unsigned int i = 0; i < pyramid3_normals.size(); i++)
+		{
+			DirectX::XMFLOAT3 temp_Normal = pyramid3_normals[i];
+			DirectX::XMFLOAT3 temp_color = pyramid3_vertices[i].color;
+
+			// Get the light ratio
+			float lightRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(pyramid_directional_Light.direction, 1.0f), temp_Normal), 1.0f, 0.0f);
+
+			// Apply the new color
+			pyramid3_vertices[i].color.x = lightRatio * pyramid_directional_Light.color.x * temp_color.x;
+			pyramid3_vertices[i].color.y = lightRatio * pyramid_directional_Light.color.y * temp_color.y;
+			pyramid3_vertices[i].color.z = lightRatio * pyramid_directional_Light.color.z * temp_color.z;
+
+		}
+
+#endif // Directional Lighting
+
+		D3D11_SUBRESOURCE_DATA pyramid3_vertexBufferData = { 0 };
+		pyramid3_vertexBufferData.pSysMem = pyramid3_vertices.data();
+		pyramid3_vertexBufferData.SysMemPitch = 0;
+		pyramid3_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC pyramid3_vertexBufferDesc(sizeof(DX11UWA::VertexPositionColor) * pyramid3_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&pyramid3_vertexBufferDesc, &pyramid3_vertexBufferData, &test_pyramid_model3._vertexBuffer));
+
+		test_pyramid_model3._indexCount = pyramid3_indices.size();
+
+		D3D11_SUBRESOURCE_DATA pyramid3_indexBufferData = { 0 };
+		pyramid3_indexBufferData.pSysMem = pyramid3_indices.data();
+		pyramid3_indexBufferData.SysMemPitch = 0;
+		pyramid3_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC pyramid3_indexBufferDesc(sizeof(unsigned int) * pyramid3_indices.size(), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&pyramid3_indexBufferDesc, &pyramid3_indexBufferData, &test_pyramid_model3._indexBuffer));
+	});
+
+	// Once the cube is loaded, the object is ready to be rendered.
+	createPyramidTaskModel3.then([this]()
+	{
+		test_pyramid_model3._loadingComplete = true;
+	});
+
+#pragma endregion
+
+
+
+#pragma region Big Daddy Model
+
+	auto context = m_deviceResources->GetD3DDeviceContext();
+	ID3D11Device *device;
+	context->GetDevice(&device);
+
+	const char *path = "Assets/Textures/Big_Daddy_Texture.dds";
+
+	size_t pathSize = strlen(path) + 1;
+	wchar_t *wc = new wchar_t[pathSize];
+	mbstowcs(&wc[0], path, pathSize);
+
+	HRESULT hr;
+
+	ID3D11Resource *texture;
+	ID3D11ShaderResourceView *bigDaddyMeshSRV;
+	hr = CreateDDSTextureFromFile(device, wc, &texture, &bigDaddyMeshSRV);
+
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createVSBigDaddyTaskModel = loadVSTaskModel.then([this](const std::vector<byte>& bigDaddy_fileData)
+	{
+		static const D3D11_INPUT_ELEMENT_DESC bigDaddy_vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(bigDaddy_vertexDesc, ARRAYSIZE(bigDaddy_vertexDesc), &bigDaddy_fileData[0], bigDaddy_fileData.size(), &big_daddy_model._inputLayout));
+	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSBigDaddyTaskModel = loadPSTaskModel.then([this](const std::vector<byte>& bigDaddy_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._pixelShader));
+	});
+
+	// Once both shaders are loaded, create the mesh.
+	auto createBigDaddyTaskModel = (createPSBigDaddyTaskModel && createVSBigDaddyTaskModel).then([this]()
+	{
+		std::vector<DX11UWA::VertexPositionColor> bigDaddy_vertices;
+		std::vector<DirectX::XMFLOAT3> bigDaddy_normals;
+		std::vector<unsigned int> bigDaddy_indices;
+
+		loadOBJ("Assets/Models/Big_Daddy.obj", bigDaddy_vertices, bigDaddy_indices, bigDaddy_normals);
+
+		D3D11_SUBRESOURCE_DATA bigDaddy_vertexBufferData = { 0 };
+		bigDaddy_vertexBufferData.pSysMem = bigDaddy_vertices.data();
+		bigDaddy_vertexBufferData.SysMemPitch = 0;
+		bigDaddy_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC bigDaddy_vertexBufferDesc(sizeof(DX11UWA::VertexPositionColor) * bigDaddy_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_vertexBufferDesc, &bigDaddy_vertexBufferData, &big_daddy_model._vertexBuffer));
+
+		big_daddy_model._indexCount = bigDaddy_indices.size();
+
+		D3D11_SUBRESOURCE_DATA bigDaddy_indexBufferData = { 0 };
+		bigDaddy_indexBufferData.pSysMem = bigDaddy_indices.data();
+		bigDaddy_indexBufferData.SysMemPitch = 0;
+		bigDaddy_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC bigDaddy_indexBufferDesc(sizeof(unsigned int) * bigDaddy_indices.size(), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_indexBufferDesc, &bigDaddy_indexBufferData, &big_daddy_model._indexBuffer));
+	});
+
+	// Once the cube is loaded, the object is ready to be rendered.
+	createBigDaddyTaskModel.then([this]()
+	{
+		big_daddy_model._loadingComplete = true;
 	});
 
 #pragma endregion

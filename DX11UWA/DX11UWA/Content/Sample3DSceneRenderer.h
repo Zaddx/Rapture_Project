@@ -73,13 +73,37 @@ namespace DX11UWA
 
 		// My Model Variables/Resources
 
+		////////////////////////////////////////////////////////////////
+		//                BEGIN PYRAMID MODELS STUFF                  //
+		////////////////////////////////////////////////////////////////
 		// Test Pyramid 
 		Model test_pyramid_model;
+		Model test_pyramid_model2;
+		Model test_pyramid_model3;
+
+		// Constant Buffer Data
 		ModelViewProjectionConstantBuffer m_constantBufferData_pyramid;
+		ModelViewProjectionConstantBuffer m_constantBufferData_pyramid2;
+		ModelViewProjectionConstantBuffer m_constantBufferData_pyramid3;
+
 
 		// Lighting 
 		DirectionalLight pyramid_directional_Light;
 		PointLight pyramid_point_light;
+		////////////////////////////////////////////////////////////////
+		//                  END PYRAMID MODELS STUFF                  //
+		////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////
+		//                BEGIN BIG DADDY MODELS STUFF                //
+		////////////////////////////////////////////////////////////////
+		// Big Daddy
+		Model big_daddy_model;
+		ModelViewProjectionConstantBuffer m_constantBufferData_big_daddy;
+		////////////////////////////////////////////////////////////////
+		//                  END BIG DADDY MODELS STUFF                //
+		////////////////////////////////////////////////////////////////
+
 	};
 }
 

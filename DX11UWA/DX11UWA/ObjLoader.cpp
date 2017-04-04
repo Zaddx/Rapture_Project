@@ -21,6 +21,63 @@ DirectX::XMFLOAT3 Lerp(DirectX::XMFLOAT3 _c1, DirectX::XMFLOAT3 _c2, float ratio
 	return temp;
 }
 
+DirectX::XMFLOAT3 Vector_Subtraction(DirectX::XMFLOAT3 &_a, DirectX::XMFLOAT3 &_b) {
+	DirectX::XMFLOAT3 temp;
+
+	temp.x = _a.x - _b.x;
+	temp.y = _a.y - _b.y;
+	temp.z = _a.z + _b.z;
+
+	return temp;
+}
+
+bool IsZero(float a)
+{
+	return (fabs(a))<EPSILON;
+}
+
+float Vector_LengthSq(DirectX::XMFLOAT3 v)
+{
+	float length;
+	float x2, y2, z2;
+
+	x2 = v.x * v.x;
+	y2 = v.y * v.y;
+	z2 = v.z * v.z;
+
+	length = x2 + y2 + z2;
+
+	return length;
+}
+
+float Vector_Length(DirectX::XMFLOAT3 v)
+{
+	return sqrtf(Vector_LengthSq(v));
+}
+
+DirectX::XMFLOAT3 Vector_Normalize(DirectX::XMFLOAT3 v)
+{
+	DirectX::XMFLOAT3 x;
+
+	float length;
+
+	length = Vector_Length(v);
+
+	if (IsZero(length))
+	{
+		x.x = x.y = x.z = 0;
+		return x;
+	}
+	else
+	{
+		x.x = v.x / length;
+		x.y = v.y / length;
+		x.z = v.z / length;
+	}
+
+	return x;
+}
+
 float Vector_Dot(DirectX::XMFLOAT3 v, DirectX::XMFLOAT3 w)
 {
 	return  v.x * w.x + v.y * w.y + v.z * w.z;
@@ -90,7 +147,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 		else if (strcmp(lineHeader, "f") == 0)
 		{
 			std::string vertex1, vertex2, vertex3;
-			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3] = { INT_MAX, INT_MAX, INT_MAX };
 			int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0],
 				&vertexIndex[1], &uvIndex[1], &normalIndex[1],
 				&vertexIndex[2], &uvIndex[2], &normalIndex[2]);
@@ -98,7 +155,9 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 			if (matches != 9)
 			{
 				printf("File can't be read by our simple parser: (Try exporting with other options)\n");
-				return false;
+
+				int non_normal_matches = fscanf(file, "%d/%d %d/%d\n", &vertexIndex[1], &uvIndex[1],
+					&vertexIndex[2], &uvIndex[2]);
 			}
 
 			vertexIndices.push_back(vertexIndex[0]);
@@ -107,9 +166,13 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 			uvIndices.push_back(uvIndex[0]);
 			uvIndices.push_back(uvIndex[1]);
 			uvIndices.push_back(uvIndex[2]);
-			normalIndices.push_back(normalIndex[0]);
-			normalIndices.push_back(normalIndex[1]);
-			normalIndices.push_back(normalIndex[2]);
+
+			if (normalIndex[0] != INT_MAX && normalIndex[1] != INT_MAX && normalIndex[0] != INT_MAX)
+			{
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[1]);
+				normalIndices.push_back(normalIndex[2]);
+			}
 		}
 	}
 
@@ -127,14 +190,13 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 		unsigned int uvIndex = uvIndices[i];
 		DirectX::XMFLOAT2 uv = temp_uvs[uvIndex - 1];
 
-		unsigned int normalIndex = normalIndices[i];
-		DirectX::XMFLOAT3 normal = temp_normals[normalIndex - 1];
-		normals.push_back(normal);
+		if (normalIndices.size() != 0)
+		{
+			unsigned int normalIndex = normalIndices[i];
+			DirectX::XMFLOAT3 normal = temp_normals[normalIndex - 1];
+			normals.push_back(normal);
+		}
 
-		// Apply the Lighting to the model
-		//float lightRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(directionalLight.pos, 1.0f), normal), 1.0f, 0.0f);
-		//temp.color = Lerp(temp.color, directionalLight.color, lightRatio);
-		
 		// Setup the Vertex Color
 		temp.color.x = 0.54f;
 		temp.color.y = 0.02f;
