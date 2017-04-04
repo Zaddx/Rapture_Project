@@ -37,7 +37,7 @@ DirectX::XMFLOAT3 Vector_Scalar_Multiply(DirectX::XMFLOAT3 v, float s)
 	return x;
 }
 
-bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_vertices, std::vector<unsigned int> &out_indices)
+bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_vertices, std::vector<unsigned int> &out_indices, std::vector<DirectX::XMFLOAT3> &out_normals)
 {
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	std::vector<DirectX::XMFLOAT3> temp_vertices;
@@ -46,16 +46,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 
 	std::vector<DX11UWA::VertexPositionColor> vertices;
 	std::vector<unsigned int> indices;
-
-	// Declaring and Initializing the light
-	DX11UWA::VertexPositionColor directionalLight;
-	directionalLight.color.x = 1.0f;
-	directionalLight.color.y = 1.0f;
-	directionalLight.color.z = 0.0f;
-
-	directionalLight.pos.x = 0.0f;
-	directionalLight.pos.y = 1.0f;
-	directionalLight.pos.z = 0.5f;
+	std::vector<DirectX::XMFLOAT3> normals;
 
 	FILE * file = fopen(path, "r");
 
@@ -135,16 +126,19 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 
 		unsigned int uvIndex = uvIndices[i];
 		DirectX::XMFLOAT2 uv = temp_uvs[uvIndex - 1];
-		temp.color.x = uv.x;
-		temp.color.y = uv.y;
-		temp.color.z = 1.0f;
 
 		unsigned int normalIndex = normalIndices[i];
 		DirectX::XMFLOAT3 normal = temp_normals[normalIndex - 1];
+		normals.push_back(normal);
 
 		// Apply the Lighting to the model
-		//float lightRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(directionalLight.pos, -1.0f), normal), 1.0f, 0.0f);
+		//float lightRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(directionalLight.pos, 1.0f), normal), 1.0f, 0.0f);
 		//temp.color = Lerp(temp.color, directionalLight.color, lightRatio);
+		
+		// Setup the Vertex Color
+		temp.color.x = 0.54f;
+		temp.color.y = 0.02f;
+		temp.color.z = 0.02f;
 
 		vertices.push_back(temp);
 		indices.push_back(i);
@@ -152,6 +146,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 
 	out_vertices = vertices;
 	out_indices = indices;
+	out_normals = normals;
 
 	return true;
 }

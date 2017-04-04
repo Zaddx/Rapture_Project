@@ -112,10 +112,9 @@ void Sample3DSceneRenderer::Rotate(float radians)
 	XMStoreFloat4x4(&m_constantBufferData_3.model, (XMMatrixMultiply(rotationZ, translationXY)));
 
 	// Translate the position then rotation it on the Y (Pyramid)
-	XMMATRIX rotationY = XMMatrixRotationY(radians);
 	XMMATRIX pyramid_translationX = XMMatrixTranslation(-1.5f, 0, 0);
 
-	XMStoreFloat4x4(&m_constantBufferData_pyramid.model, XMMatrixMultiply(rotationY, pyramid_translationX));
+	XMStoreFloat4x4(&m_constantBufferData_pyramid.model, pyramid_translationX);
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -434,9 +433,33 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	auto createPyramidTaskModel = (createPSTaskPyramidModel && createVSTasPyramidkModel).then([this]()
 	{
 		std::vector<DX11UWA::VertexPositionColor> pyramid_vertices;
+		std::vector<DirectX::XMFLOAT3> pyramid_normals;
 		std::vector<unsigned int> pyramid_indices;
 
-		loadOBJ("Assets/Models/test pyramid.obj", pyramid_vertices, pyramid_indices);
+		loadOBJ("Assets/Models/test pyramid.obj", pyramid_vertices, pyramid_indices, pyramid_normals);
+
+#if 1
+
+		// Initializing the Directional light
+		pyramid_directional_Light.direction.x = 0.0f;
+		pyramid_directional_Light.direction.y = 1.0f;
+		pyramid_directional_Light.direction.z = -0.5f;
+
+		pyramid_directional_Light.color.x = 0.5f;
+		pyramid_directional_Light.color.y = 0.5f;
+		pyramid_directional_Light.color.z = 0.5f;
+
+		for (unsigned int i = 0; i < pyramid_normals.size(); i++)
+		{
+			DirectX::XMFLOAT3 temp_Normal = pyramid_normals[i];
+			DirectX::XMFLOAT3 temp_color = pyramid_vertices[i].color;
+
+			// Apply the Lighting to the model
+			float lightRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(pyramid_directional_Light.direction, 1.0f), temp_Normal), 1.0f, 0.0f);
+			pyramid_vertices[i].color = Lerp(temp_color, pyramid_directional_Light.color, lightRatio);
+		}
+
+#endif // Directional Lighting
 
 		D3D11_SUBRESOURCE_DATA pyramid_vertexBufferData = { 0 };
 		pyramid_vertexBufferData.pSysMem = pyramid_vertices.data();

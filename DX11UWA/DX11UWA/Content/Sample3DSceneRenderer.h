@@ -76,6 +76,10 @@ namespace DX11UWA
 		// Test Pyramid 
 		Model test_pyramid_model;
 		ModelViewProjectionConstantBuffer m_constantBufferData_pyramid;
+
+		// Lighting 
+		DirectionalLight pyramid_directional_Light;
+		PointLight pyramid_point_light;
 	};
 }
 

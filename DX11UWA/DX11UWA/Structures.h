@@ -29,3 +29,13 @@ struct Model
 	// The World Matrix
 	DirectX::XMMATRIX							_world_matrix;
 };
+
+struct DirectionalLight {
+	DirectX::XMFLOAT3 direction;
+	DirectX::XMFLOAT3 color;
+};
+
+struct PointLight {
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 color;
+};
