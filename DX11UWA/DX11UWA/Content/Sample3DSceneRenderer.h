@@ -100,6 +100,9 @@ namespace DX11UWA
 		// Big Daddy
 		Model big_daddy_model;
 		ModelViewProjectionConstantBuffer m_constantBufferData_big_daddy;
+
+		// Texture Variables
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> diffuseTexture;
 		////////////////////////////////////////////////////////////////
 		//                  END BIG DADDY MODELS STUFF                //
 		////////////////////////////////////////////////////////////////

@@ -132,9 +132,10 @@ void Sample3DSceneRenderer::Rotate(float radians)
 	XMStoreFloat4x4(&m_constantBufferData_pyramid3.model, pyramid3_translationXY);
 
 	// Translate the position (Big Daddy)
-	XMMATRIX bigDaddy_translationX = XMMatrixTranslation(-4.5f, 0, 0);
+	XMMATRIX bigDaddy_translationX = XMMatrixTranslation(0.0f, 0.0f, -1.0f);
+	XMMATRIX bigDaddy_rotationY = XMMatrixRotationY(radians);
 
-	XMStoreFloat4x4(&m_constantBufferData_big_daddy.model, bigDaddy_translationX);
+	XMStoreFloat4x4(&m_constantBufferData_big_daddy.model, (XMMatrixMultiply(bigDaddy_rotationY, bigDaddy_translationX)));
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -520,9 +521,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	{
 		std::vector<DX11UWA::VertexPositionColor> pyramid_vertices;
 		std::vector<DirectX::XMFLOAT3> pyramid_normals;
+		std::vector<DirectX::XMFLOAT2> pyramid_uvs;
 		std::vector<unsigned int> pyramid_indices;
 
-		loadOBJ("Assets/Models/test pyramid.obj", pyramid_vertices, pyramid_indices, pyramid_normals);
+		loadOBJ("Assets/Models/test pyramid.obj", pyramid_vertices, pyramid_indices, pyramid_normals, pyramid_uvs);
 
 		// Change the colors of all the Vertices to Sand/Beige
 		for (unsigned int i = 0; i < pyramid_vertices.size(); i++)
@@ -644,9 +646,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	{
 		std::vector<DX11UWA::VertexPositionColor> pyramid2_vertices;
 		std::vector<DirectX::XMFLOAT3> pyramid2_normals;
+		std::vector<DirectX::XMFLOAT2> pyramid2_uvs;
 		std::vector<unsigned int> pyramid2_indices;
 
-		loadOBJ("Assets/Models/test pyramid.obj", pyramid2_vertices, pyramid2_indices, pyramid2_normals);
+		loadOBJ("Assets/Models/test pyramid.obj", pyramid2_vertices, pyramid2_indices, pyramid2_normals, pyramid2_uvs);
 
 		// Change the colors of all the Vertices to Purple
 		for (unsigned int i = 0; i < pyramid2_vertices.size(); i++)
@@ -734,9 +737,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	{
 		std::vector<DX11UWA::VertexPositionColor> pyramid3_vertices;
 		std::vector<DirectX::XMFLOAT3> pyramid3_normals;
+		std::vector<DirectX::XMFLOAT2> pyramid3_uvs;
 		std::vector<unsigned int> pyramid3_indices;
 
-		loadOBJ("Assets/Models/test pyramid.obj", pyramid3_vertices, pyramid3_indices, pyramid3_normals);
+		loadOBJ("Assets/Models/test pyramid.obj", pyramid3_vertices, pyramid3_indices, pyramid3_normals, pyramid3_uvs);
 
 		// Change the colors of all the Vertices to Sand/Beige
 		for (unsigned int i = 0; i < pyramid3_vertices.size(); i++)
@@ -803,8 +807,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma endregion
 
-
-
 #pragma region Big Daddy Model
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
@@ -846,9 +848,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	{
 		std::vector<DX11UWA::VertexPositionColor> bigDaddy_vertices;
 		std::vector<DirectX::XMFLOAT3> bigDaddy_normals;
+		std::vector<DirectX::XMFLOAT2> bigDaddy_uvs;
 		std::vector<unsigned int> bigDaddy_indices;
 
-		loadOBJ("Assets/Models/Big_Daddy.obj", bigDaddy_vertices, bigDaddy_indices, bigDaddy_normals);
+		loadOBJ("Assets/Models/Big_Daddy.obj", bigDaddy_vertices, bigDaddy_indices, bigDaddy_normals, bigDaddy_uvs);
 
 		D3D11_SUBRESOURCE_DATA bigDaddy_vertexBufferData = { 0 };
 		bigDaddy_vertexBufferData.pSysMem = bigDaddy_vertices.data();

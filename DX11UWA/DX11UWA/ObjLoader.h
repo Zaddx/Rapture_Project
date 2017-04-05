@@ -22,4 +22,4 @@ float Vector_Dot(DirectX::XMFLOAT3 v, DirectX::XMFLOAT3 w);
 
 DirectX::XMFLOAT3 Vector_Scalar_Multiply(DirectX::XMFLOAT3 v, float s);
 
-bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_vertices, std::vector<unsigned int> &out_indices, std::vector<DirectX::XMFLOAT3> &out_normals);
+bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_vertices, std::vector<unsigned int> &out_indices, std::vector<DirectX::XMFLOAT3> &out_normals, std::vector<DirectX::XMFLOAT2> &out_uvs);

@@ -94,7 +94,7 @@ DirectX::XMFLOAT3 Vector_Scalar_Multiply(DirectX::XMFLOAT3 v, float s)
 	return x;
 }
 
-bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_vertices, std::vector<unsigned int> &out_indices, std::vector<DirectX::XMFLOAT3> &out_normals)
+bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_vertices, std::vector<unsigned int> &out_indices, std::vector<DirectX::XMFLOAT3> &out_normals, std::vector<DirectX::XMFLOAT2> &out_uvs)
 {
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	std::vector<DirectX::XMFLOAT3> temp_vertices;
@@ -102,8 +102,9 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 	std::vector<DirectX::XMFLOAT3> temp_normals;
 
 	std::vector<DX11UWA::VertexPositionColor> vertices;
-	std::vector<unsigned int> indices;
 	std::vector<DirectX::XMFLOAT3> normals;
+	std::vector<DirectX::XMFLOAT2> uvs;
+	std::vector<unsigned int> indices;
 
 	FILE * file = fopen(path, "r");
 
@@ -189,6 +190,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 
 		unsigned int uvIndex = uvIndices[i];
 		DirectX::XMFLOAT2 uv = temp_uvs[uvIndex - 1];
+		uvs.push_back(uv);
 
 		if (normalIndices.size() != 0)
 		{
@@ -198,9 +200,9 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 		}
 
 		// Setup the Vertex Color
-		temp.color.x = 0.54f;
-		temp.color.y = 0.02f;
-		temp.color.z = 0.02f;
+		temp.color.x = uv.x;
+		temp.color.y = 0.0f;
+		temp.color.z = 0.0f;
 
 		vertices.push_back(temp);
 		indices.push_back(i);
@@ -209,6 +211,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 	out_vertices = vertices;
 	out_indices = indices;
 	out_normals = normals;
+	out_uvs = uvs;
 
 	return true;
 }
