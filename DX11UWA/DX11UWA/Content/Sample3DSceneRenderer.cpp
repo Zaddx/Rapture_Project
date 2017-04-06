@@ -275,6 +275,12 @@ void Sample3DSceneRenderer::Render(void)
 
 	context->UpdateSubresource1(big_daddy_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_big_daddy, 0, 0, 0);
 
+	// Attach our vertex shader.
+	context->VSSetShader(big_daddy_model._vertexShader.Get(), nullptr, 0);
+
+	// Attach our pixel shader.
+	context->PSSetShader(big_daddy_model._pixelShader.Get(), nullptr, 0);
+
 	context->DrawIndexed(big_daddy_model._indexCount, 0, 0);
 
 #pragma endregion
@@ -400,6 +406,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSBigDaddyTaskModel = loadVSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
 	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._vertexShader));
+
 		static const D3D11_INPUT_ELEMENT_DESC bigDaddy_vertexDesc[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
