@@ -54,10 +54,6 @@ namespace DX11UWA
 		ModelViewProjectionConstantBuffer	m_constantBufferData;
 		uint32	m_indexCount;
 
-		// To draw additional Cubes
-		ModelViewProjectionConstantBuffer m_constantBufferData_2;
-		ModelViewProjectionConstantBuffer m_constantBufferData_3;
-
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
 		float	m_degreesPerSecond;
@@ -72,28 +68,6 @@ namespace DX11UWA
 		DirectX::XMFLOAT4X4 m_camera;
 
 		// My Model Variables/Resources
-
-		////////////////////////////////////////////////////////////////
-		//                BEGIN PYRAMID MODELS STUFF                  //
-		////////////////////////////////////////////////////////////////
-		// Test Pyramid 
-		Model test_pyramid_model;
-		Model test_pyramid_model2;
-		Model test_pyramid_model3;
-
-		// Constant Buffer Data
-		ModelViewProjectionConstantBuffer m_constantBufferData_pyramid;
-		ModelViewProjectionConstantBuffer m_constantBufferData_pyramid2;
-		ModelViewProjectionConstantBuffer m_constantBufferData_pyramid3;
-
-
-		// Lighting 
-		DirectionalLight pyramid_directional_Light;
-		PointLight pyramid_point_light;
-		////////////////////////////////////////////////////////////////
-		//                  END PYRAMID MODELS STUFF                  //
-		////////////////////////////////////////////////////////////////
-
 		////////////////////////////////////////////////////////////////
 		//                BEGIN BIG DADDY MODELS STUFF                //
 		////////////////////////////////////////////////////////////////
@@ -102,7 +76,8 @@ namespace DX11UWA
 		ModelViewProjectionConstantBuffer m_constantBufferData_big_daddy;
 
 		// Texture Variables
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> diffuseTexture;
+		Microsoft::WRL::ComPtr<ID3D11Resource> texture;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bigDaddyMeshSRV;
 		////////////////////////////////////////////////////////////////
 		//                  END BIG DADDY MODELS STUFF                //
 		////////////////////////////////////////////////////////////////

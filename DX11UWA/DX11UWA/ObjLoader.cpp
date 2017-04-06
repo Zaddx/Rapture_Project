@@ -94,14 +94,14 @@ DirectX::XMFLOAT3 Vector_Scalar_Multiply(DirectX::XMFLOAT3 v, float s)
 	return x;
 }
 
-bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_vertices, std::vector<unsigned int> &out_indices, std::vector<DirectX::XMFLOAT3> &out_normals, std::vector<DirectX::XMFLOAT2> &out_uvs)
+bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionUVNormal> &out_vertices, std::vector<unsigned int> &out_indices, std::vector<DirectX::XMFLOAT3> &out_normals, std::vector<DirectX::XMFLOAT2> &out_uvs)
 {
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	std::vector<DirectX::XMFLOAT3> temp_vertices;
 	std::vector<DirectX::XMFLOAT2> temp_uvs;
 	std::vector<DirectX::XMFLOAT3> temp_normals;
 
-	std::vector<DX11UWA::VertexPositionColor> vertices;
+	std::vector<DX11UWA::VertexPositionUVNormal> vertices;
 	std::vector<DirectX::XMFLOAT3> normals;
 	std::vector<DirectX::XMFLOAT2> uvs;
 	std::vector<unsigned int> indices;
@@ -148,7 +148,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 		else if (strcmp(lineHeader, "f") == 0)
 		{
 			std::string vertex1, vertex2, vertex3;
-			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3] = { INT_MAX, INT_MAX, INT_MAX };
+			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
 			int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0],
 				&vertexIndex[1], &uvIndex[1], &normalIndex[1],
 				&vertexIndex[2], &uvIndex[2], &normalIndex[2]);
@@ -156,9 +156,6 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 			if (matches != 9)
 			{
 				printf("File can't be read by our simple parser: (Try exporting with other options)\n");
-
-				int non_normal_matches = fscanf(file, "%d/%d %d/%d\n", &vertexIndex[1], &uvIndex[1],
-					&vertexIndex[2], &uvIndex[2]);
 			}
 
 			vertexIndices.push_back(vertexIndex[0]);
@@ -167,20 +164,16 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 			uvIndices.push_back(uvIndex[0]);
 			uvIndices.push_back(uvIndex[1]);
 			uvIndices.push_back(uvIndex[2]);
-
-			if (normalIndex[0] != INT_MAX && normalIndex[1] != INT_MAX && normalIndex[0] != INT_MAX)
-			{
-				normalIndices.push_back(normalIndex[0]);
-				normalIndices.push_back(normalIndex[1]);
-				normalIndices.push_back(normalIndex[2]);
-			}
+			normalIndices.push_back(normalIndex[0]);
+			normalIndices.push_back(normalIndex[1]);
+			normalIndices.push_back(normalIndex[2]);
 		}
 	}
 
 	// For each vertex of each triangle
 	for (unsigned int i = 0; i < vertexIndices.size(); i++)
 	{
-		DX11UWA::VertexPositionColor temp;
+		DX11UWA::VertexPositionUVNormal temp;
 
 		unsigned int vertexIndex = vertexIndices[i];
 		DirectX::XMFLOAT3 vertex = temp_vertices[vertexIndex - 1];
@@ -192,17 +185,16 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionColor> &out_v
 		DirectX::XMFLOAT2 uv = temp_uvs[uvIndex - 1];
 		uvs.push_back(uv);
 
-		if (normalIndices.size() != 0)
-		{
-			unsigned int normalIndex = normalIndices[i];
-			DirectX::XMFLOAT3 normal = temp_normals[normalIndex - 1];
-			normals.push_back(normal);
-		}
+		unsigned int normalIndex = normalIndices[i];
+		DirectX::XMFLOAT3 normal = temp_normals[normalIndex - 1];
+		normals.push_back(normal);
 
 		// Setup the Vertex Color
-		temp.color.x = uv.x;
-		temp.color.y = 0.0f;
-		temp.color.z = 0.0f;
+		temp.uv.x = uv.x;
+		temp.uv.y = uv.y;
+
+		// Setup the Vertex Normals
+		temp.normal = normal;
 
 		vertices.push_back(temp);
 		indices.push_back(i);

@@ -20,7 +20,7 @@ namespace DX11UWA
 	struct VertexPositionUVNormal
 	{
 		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT3 uv;
+		DirectX::XMFLOAT2 uv;
 		DirectX::XMFLOAT3 normal;
 	};
 }

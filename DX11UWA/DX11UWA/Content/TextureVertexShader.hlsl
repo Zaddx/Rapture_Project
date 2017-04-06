@@ -1,46 +1,46 @@
-//////////////// 
-//   GLOBALS  //
-////////////////
-cbuffer MatrixBuffer
+#pragma pack_matrix(row_major)
+
+// A constant buffer that stores the three basic column-major matrices for composing geometry.
+cbuffer ModelViewProjectionConstantBuffer : register(b0)
 {
-	matrix worldMatrix;
-	matrix viewMatrix;
-	matrix projectionMatrix;
-}
+	matrix model;
+	matrix view;
+	matrix projection;
+};
 
-///////////////
-// TYPEDEFS  //
-///////////////
-struct VertexInputType
+// Per-vertex data used as input to the vertex shader.
+struct VertexShaderInput
 {
-	float4 pos : POS;
-	float2 uv  : UV;
-}
+	float3 pos : POSITION;
+	float2 uv : UV;
+	float3 norm : NORM;
+};
 
-struct PixelInputType
+// Per-pixel color data passed through the pixel shader.
+struct PixelShaderInput
 {
-	float4 pos : POS;
-	float2 uv  : UV;
-}
+	float4 pos : SV_POSITION;
+	float2 uv : UV;
+	float3 norm : NORM;
+};
 
-///////////////////////////////////////////
-//             Vertex Shader             //
-///////////////////////////////////////////
-PixelInputType TextureVertexShader(VertexInputType input)
+// Simple shader to do vertex processing on the GPU.
+PixelShaderInput main(VertexShaderInput input)
 {
-	PixelInputType output;
+	PixelShaderInput output;
+	float4 pos = float4(input.pos, 1.0f);
 
-	// Change the postion vector to be 4 units for proper matrix calculations
-	input.pos.w = 1.0f;
+	// Transform the vertex position into projected space.
+	pos = mul(pos, model);
+	pos = mul(pos, view);
+	pos = mul(pos, projection);
+	output.pos = pos;
 
-	// Calculate the postion of the vertex against the world, view, and projection matrices
-	output.pos = mul(input.pos, worldMatrix);
-	output.pos = mul(output.pos, viewMatrix);
-	output.pos = mul(output.pos, projectionMatrix);
-
-	// Store the texture coordinates for the pixel Shader
+	// Pass the color through without modification.
 	output.uv = input.uv;
+
+	// Pass the normals through without modification.
+	output.norm = input.norm;
 
 	return output;
 }
-
