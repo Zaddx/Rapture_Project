@@ -3,7 +3,7 @@ struct PixelShaderInput
 {
 	float4 pos  : SV_POSITION;
 	float2 uv 	: UV;
-	float3 norm : NORMALS;
+	float3 norm : NORM;
 };
 
 texture2D textureFile : register(t0);

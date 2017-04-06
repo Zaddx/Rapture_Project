@@ -19,8 +19,8 @@ struct VertexShaderInput
 // Per-pixel color data passed through the pixel shader.
 struct PixelShaderInput
 {
-	float4 pos : SV_POSITION;
-	float2 uv : UV;
+	float4 pos  : SV_POSITION;
+	float2 uv 	: UV;
 	float3 norm : NORM;
 };
 

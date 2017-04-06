@@ -191,7 +191,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionUVNormal> &ou
 
 		// Setup the Vertex Color
 		temp.uv.x = uv.x;
-		temp.uv.y = uv.y;
+		temp.uv.y = 1.0f - uv.y;
 
 		// Setup the Vertex Normals
 		temp.normal = normal;
