@@ -50,6 +50,9 @@
     <Filter Include="Assets\Textures">
       <UniqueIdentifier>{28315f6e-df81-4570-b556-59b2365efd3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Cubemaps">
+      <UniqueIdentifier>{6ac16bb1-127b-4960-b44a-b232a92d6741}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -121,6 +124,9 @@
     <Image Include="Assets\Textures\Big_Daddy_Texture.dds">
       <Filter>Assets\Textures</Filter>
     </Image>
+    <Image Include="Assets\Cubemaps\Rapture.dds">
+      <Filter>Assets\Cubemaps</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -144,6 +150,12 @@
       <Filter>Content\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Content\TextureVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\SkyboxPixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\SkyboxVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

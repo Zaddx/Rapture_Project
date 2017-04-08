@@ -54,6 +54,10 @@ namespace DX11UWA
 		ModelViewProjectionConstantBuffer	m_constantBufferData;
 		uint32	m_indexCount;
 
+		// Texture Variables
+		Microsoft::WRL::ComPtr<ID3D11Resource> skybox_texture;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skyboxSRV;
+
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
 		float	m_degreesPerSecond;

@@ -92,7 +92,7 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Prepare to pass the updated model matrix to the shader
-	XMStoreFloat4x4(&m_constantBufferData.model, (XMMatrixRotationY(radians)));
+	XMStoreFloat4x4(&m_constantBufferData.model, (XMMatrixRotationY(0)));
 
 	// Translate the position (Big Daddy)
 	XMMATRIX bigDaddy_translationX = XMMatrixTranslation(0.0f, 0.0f, -1.0f);
@@ -230,6 +230,10 @@ void Sample3DSceneRenderer::Render(void)
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
+	// Setup the Cubemap
+	ID3D11ShaderResourceView** skyboxViews[] = { skyboxSRV.GetAddressOf() };
+	context->PSSetShaderResources(0, 1, *skyboxViews);
+
 	XMStoreFloat4x4(&m_constantBufferData.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 
 	// Prepare the constant buffer to send it to the graphics device.
@@ -291,13 +295,26 @@ void Sample3DSceneRenderer::Render(void)
 void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 {
 	// Load shaders asynchronously.
-	auto loadVSTask = DX::ReadDataAsync(L"SampleVertexShader.cso");
-	auto loadPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso");
+	auto loadVSTask = DX::ReadDataAsync(L"SkyboxVertexShader.cso");
+	auto loadPSTask = DX::ReadDataAsync(L"SkyboxPixelShader.cso");
 
 	auto loadVSTaskTexture = DX::ReadDataAsync(L"TextureVertexShader.cso");
 	auto loadPSTaskTexture = DX::ReadDataAsync(L"TexturePixelShader.cso");
 
 #pragma region Cube
+
+	auto context_Skybox = m_deviceResources->GetD3DDeviceContext();
+	ID3D11Device *device_Skybox;
+	context_Skybox->GetDevice(&device_Skybox);
+
+	const char *skybox_path = "Assets/Cubemaps/Rapture.dds";
+
+	size_t skybox_pathSize = strlen(skybox_path) + 1;
+	wchar_t *skybox_wc = new wchar_t[skybox_pathSize];
+	mbstowcs(&skybox_wc[0], skybox_path, skybox_pathSize);
+
+	HRESULT hr2;
+	hr2 = CreateDDSTextureFromFile(device_Skybox, skybox_wc, &skybox_texture, &skyboxSRV);
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData)
@@ -328,14 +345,14 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Load mesh vertices. Each vertex has a position and a color.
 		static const VertexPositionColor cubeVertices[] =
 		{
-			{ XMFLOAT3(-50.0f, -50.0f, -50.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(-50.0f, -50.0f,  50.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-50.0f,  50.0f, -50.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-50.0f,  50.0f,  50.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(50.0f, -50.0f, -50.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(50.0f, -50.0f,  50.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(50.0f,  50.0f, -50.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(50.0f,  50.0f,  50.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(-10.0f, -10.0f, -10.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(-10.0f, -10.0f,  10.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(-10.0f,  10.0f, -10.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-10.0f,  10.0f,  10.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(10.0f, -10.0f, -10.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(10.0f, -10.0f,  10.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(10.0f,  10.0f, -10.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(10.0f,  10.0f,  10.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
 		};
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
