@@ -55,7 +55,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	// Update constant buffer to be in Perspective Space (I think)
 	XMStoreFloat4x4(&m_constantBufferData.projection, (perspectiveMatrix * orientationMatrix));
 	XMStoreFloat4x4(&m_constantBufferData_big_daddy.projection, (perspectiveMatrix * orientationMatrix));
-
+	XMStoreFloat4x4(&m_constantBufferData_floor.projection, (perspectiveMatrix * orientationMatrix));
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	static const XMVECTORF32 eye = { 0.0f, 0.7f, -1.5f, 0.0f };
@@ -67,6 +67,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	// Update the constant buffer data based on camera
 	XMStoreFloat4x4(&m_constantBufferData.view, (XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_constantBufferData_big_daddy.view, (XMMatrixLookAtLH(eye, at, up)));
+	XMStoreFloat4x4(&m_constantBufferData_floor.view, (XMMatrixLookAtLH(eye, at, up)));
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -95,10 +96,11 @@ void Sample3DSceneRenderer::Rotate(float radians)
 	XMStoreFloat4x4(&m_constantBufferData.model, (XMMatrixRotationY(0)));
 
 	// Translate the position (Big Daddy)
-	XMMATRIX bigDaddy_translationX = XMMatrixTranslation(0.0f, 0.0f, -1.0f);
 	XMMATRIX bigDaddy_rotationY = XMMatrixRotationY(radians);
+	XMMATRIX bigDaddy_translationY = XMMatrixTranslation(0.0f, 10.0f, 0.0f);
 
-	XMStoreFloat4x4(&m_constantBufferData_big_daddy.model, (XMMatrixMultiply(bigDaddy_rotationY, bigDaddy_translationX)));
+	XMStoreFloat4x4(&m_constantBufferData_big_daddy.model, XMMatrixMultiply(bigDaddy_rotationY, bigDaddy_translationY));
+
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -219,8 +221,9 @@ void Sample3DSceneRenderer::StopTracking(void)
 // Renders one frame using the vertex and pixel shaders.
 void Sample3DSceneRenderer::Render(void)
 {
+	auto context = m_deviceResources->GetD3DDeviceContext();
 
-#pragma region Cube
+#pragma region Skybox
 
 	// Loading is asynchronous. Only draw geometry after it's loaded.
 	if (!m_loadingComplete)
@@ -228,7 +231,6 @@ void Sample3DSceneRenderer::Render(void)
 		return;
 	}
 
-	auto context = m_deviceResources->GetD3DDeviceContext();
 
 	// Setup the Cubemap
 	ID3D11ShaderResourceView** skyboxViews[] = { skyboxSRV.GetAddressOf() };
@@ -290,6 +292,39 @@ void Sample3DSceneRenderer::Render(void)
 
 #pragma endregion
 
+#pragma region Floor
+
+	if (!floor_model._loadingComplete)
+	{
+		return;
+	}
+
+	//ID3D11ShaderResourceView** texViews[] = { bigDaddyMeshSRV.GetAddressOf() };
+	//context->PSSetShaderResources(0, 1, *texViews);
+
+	XMStoreFloat4x4(&m_constantBufferData_floor.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+
+	// Setup Vertex Buffer
+	UINT floor_stride = sizeof(DX11UWA::VertexPositionUVNormal);
+	UINT floor_offset = 0;
+	context->IASetVertexBuffers(0, 1, floor_model._vertexBuffer.GetAddressOf(), &floor_stride, &floor_offset);
+
+	// Set Index buffer
+	context->IASetIndexBuffer(floor_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetInputLayout(floor_model._inputLayout.Get());
+
+	context->UpdateSubresource1(floor_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_floor, 0, 0, 0);
+
+	// Attach our vertex shader.
+	context->VSSetShader(floor_model._vertexShader.Get(), nullptr, 0);
+
+	// Attach our pixel shader.
+	context->PSSetShader(floor_model._pixelShader.Get(), nullptr, 0);
+
+	context->DrawIndexed(floor_model._indexCount, 0, 0);
+
+#pragma endregion
+
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
@@ -301,7 +336,123 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	auto loadVSTaskTexture = DX::ReadDataAsync(L"TextureVertexShader.cso");
 	auto loadPSTaskTexture = DX::ReadDataAsync(L"TexturePixelShader.cso");
 
-#pragma region Cube
+	auto LoadVSTaskModel = DX::ReadDataAsync(L"SampleVertexShader.cso");
+	auto LoadPSTaskModel = DX::ReadDataAsync(L"SamplePixelShader.cso");
+
+#pragma region Floor
+
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createVSTaskFloorModel = LoadVSTaskModel.then([this](const std::vector<byte>& floor_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&floor_fileData[0], floor_fileData.size(), nullptr, &floor_model._vertexShader));
+
+		static const D3D11_INPUT_ELEMENT_DESC floor_vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(floor_vertexDesc, ARRAYSIZE(floor_vertexDesc), &floor_fileData[0], floor_fileData.size(), &floor_model._inputLayout));
+	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSTaskFloorModel = LoadPSTaskModel.then([this](const std::vector<byte>& floor_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&floor_fileData[0], floor_fileData.size(), nullptr, &floor_model._pixelShader));
+
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &floor_model._constantBuffer));
+	});
+
+	// Once both shaders are loaded, create the mesh.
+	auto createTaskFloorModel = (createPSTaskFloorModel && createVSTaskFloorModel).then([this]()
+	{
+		std::vector<DX11UWA::VertexPositionUVNormal> floor_vertices;
+		std::vector<DirectX::XMFLOAT3> floor_normals;
+		std::vector<DirectX::XMFLOAT2> floor_uvs;
+		std::vector<unsigned int> floor_indices;
+
+		loadOBJ("Assets/Models/Floor.obj", floor_vertices, floor_indices, floor_normals, floor_uvs);
+
+		// Change uv's so the floor is a dark color or black
+		for (unsigned int i = 0; i < floor_vertices.size(); i++)
+		{
+			floor_vertices[i].uv.x = 0.5f;
+			floor_vertices[i].uv.y = 0.0f;
+		}
+
+		// Move down the floor, so it's below the big daddys feet
+		for (unsigned int i = 0; i < floor_vertices.size(); i++)
+		{
+			floor_vertices[i].pos.y -= 0.35f;
+		}
+
+#if 0
+
+#pragma region Directional Light
+
+		floor_directional_light.direction = { 0.0f, 0.35f, 0.0f };
+		floor_directional_light.color = { 1.0f, 0.945f, 0.878f };
+		
+		DirectX::XMFLOAT3 lightDirection = floor_directional_light.direction;
+		DirectX::XMFLOAT3 lightColor = floor_directional_light.color;
+
+		for (unsigned int i = 0; i < floor_vertices.size(); i++)
+		{
+			DirectX::XMFLOAT3 surfaceNormal = floor_vertices[i].normal;
+			DirectX::XMFLOAT2 surfaceColor = floor_vertices[i].uv;
+
+			float lightRatio;
+			DirectX::XMFLOAT2 result;
+
+			lightRatio = Clamp(Vector_Dot(lightDirection, surfaceNormal), 1.0f, 0.0f);
+			result.x = lightRatio * lightColor.x * surfaceColor.x;
+			result.y = lightRatio * lightColor.y * surfaceColor.y;
+
+			floor_vertices[i].uv = result;
+		}
+
+#pragma endregion	
+
+#endif // Directional Light
+
+#pragma region Point Light
+
+
+
+#pragma endregion
+
+#pragma region Spot Light
+
+#pragma endregion
+
+		D3D11_SUBRESOURCE_DATA floor_vertexBufferData = { 0 };
+		floor_vertexBufferData.pSysMem = floor_vertices.data();
+		floor_vertexBufferData.SysMemPitch = 0;
+		floor_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC floor_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * floor_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&floor_vertexBufferDesc, &floor_vertexBufferData, &floor_model._vertexBuffer));
+
+		floor_model._indexCount = floor_indices.size();
+
+		D3D11_SUBRESOURCE_DATA floor_indexBufferData = { 0 };
+		floor_indexBufferData.pSysMem = floor_indices.data();
+		floor_indexBufferData.SysMemPitch = 0;
+		floor_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC floor_indexBufferDesc(sizeof(unsigned int) * floor_indices.size(), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&floor_indexBufferDesc, &floor_indexBufferData, &floor_model._indexBuffer));
+	});
+
+	// Once the cube is loaded, the object is ready to be rendered.
+	createTaskFloorModel.then([this]()
+	{
+		floor_model._loadingComplete = true;
+	});
+
+#pragma endregion
+
+#pragma region Skybox
 
 	auto context_Skybox = m_deviceResources->GetD3DDeviceContext();
 	ID3D11Device *device_Skybox;

@@ -138,6 +138,9 @@
     <None Include="Assets\Models\Big_Daddy.obj">
       <Filter>Assets\Models</Filter>
     </None>
+    <None Include="Assets\Models\Floor.obj">
+      <Filter>Assets\Models</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
