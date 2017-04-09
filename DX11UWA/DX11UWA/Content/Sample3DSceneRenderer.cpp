@@ -417,15 +417,94 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #endif // Directional Light
 
+#if 1
+
 #pragma region Point Light
 
+		{
+			// Initialize the point light data
+			floor_point_light.position = { 0.0f, 0.0f, 0.0f };
+			floor_point_light.color = { 1.0f, 0.945f, 0.878f };
+			floor_point_light.radius = .5f;
 
+			DirectX::XMFLOAT3 lightPosition = floor_point_light.position;
+			DirectX::XMFLOAT3 lightColor = floor_point_light.color;
+			float lightRadius = floor_point_light.radius;
+
+			for (unsigned int i = 0; i < floor_vertices.size(); i++)
+			{
+				DirectX::XMFLOAT3 surfacePosition = floor_vertices[i].pos;
+				DirectX::XMFLOAT3 surfaceNormal = floor_vertices[i].normal;
+				DirectX::XMFLOAT2 surfaceColor = floor_vertices[i].uv;
+
+				float attenuation;
+				DirectX::XMFLOAT3 lightDirection;
+				DirectX::XMFLOAT2 result;
+
+				lightDirection = Vector_Normalize(Vector_Subtraction(lightPosition, surfacePosition));
+
+				attenuation = 1.0f - Clamp(Vector_Length(Vector_Subtraction(lightPosition, surfacePosition)) - lightRadius, 1.0f, 0.0f);
+				result.x = attenuation * lightColor.x * surfaceColor.x;
+				result.y = attenuation * lightColor.y * surfaceColor.y;
+
+				floor_vertices[i].uv = result;
+			}
+		}
 
 #pragma endregion
+
+#endif // Point Light
+
+#if 0
 
 #pragma region Spot Light
 
+		{
+			// Initialize the spot light data
+			floor_spot_light.position = { 0.0f, -3.0f, 1.0f };
+			floor_spot_light.color = { 1.0f, 0.945f, 0.878f };
+			floor_spot_light.cone_direction = { 0.0f, 0.35f, -1.0f };
+			floor_spot_light.cone_ratio = 0.5f;
+			floor_spot_light.inner_cone_ratio = 0.0f;
+			floor_spot_light.outer_cone_ratio = 0.75f;
+
+			DirectX::XMFLOAT3 lightPosition = floor_spot_light.position;
+			DirectX::XMFLOAT3 lightColor = floor_spot_light.color;
+			DirectX::XMFLOAT3 coneDirection = floor_spot_light.cone_direction;
+			float coneRatio = floor_spot_light.cone_ratio;
+			float innerConeRatio = floor_spot_light.inner_cone_ratio;
+			float outerConeRatio = floor_spot_light.outer_cone_ratio;
+
+			for (unsigned int i = 0; i < floor_vertices.size(); i++)
+			{
+				DirectX::XMFLOAT3 surfacePosition = floor_vertices[i].pos;
+				DirectX::XMFLOAT3 surfaceNormal = floor_vertices[i].normal;
+				DirectX::XMFLOAT2 surfaceColor = floor_vertices[i].uv;
+
+				float attenuation;
+				float surfaceRatio;
+				float spotFactor;
+				DirectX::XMFLOAT3 lightDirection;
+				DirectX::XMFLOAT2 result;
+
+				lightDirection = Vector_Normalize(Vector_Subtraction(lightPosition, surfacePosition));
+
+				surfaceRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(lightDirection, -1.0f), coneDirection), 1.0f, 0.0f);
+
+				spotFactor = (surfaceRatio > coneRatio) ? 1 : 0;
+
+				attenuation = 1.0f - Clamp((innerConeRatio - surfaceRatio) / (innerConeRatio - outerConeRatio), 1.0f, 0.0f);
+
+				result.x = spotFactor * attenuation * lightColor.x * surfaceColor.x;
+				result.y = spotFactor * attenuation * lightColor.y * surfaceColor.y;
+
+				floor_vertices[i].uv = result;
+			}
+		}
+
 #pragma endregion
+
+#endif // Spot Light
 
 		D3D11_SUBRESOURCE_DATA floor_vertexBufferData = { 0 };
 		floor_vertexBufferData.pSysMem = floor_vertices.data();

@@ -37,6 +37,15 @@ struct DirectionalLight {
 
 struct PointLight {
 	DirectX::XMFLOAT3 position;
-	DirectX::XMFLOAT3 radius;
 	DirectX::XMFLOAT3 color;
+	float radius;
+};
+
+struct SpotLight {
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 color;
+	DirectX::XMFLOAT3 cone_direction;
+	float cone_ratio;
+	float inner_cone_ratio;
+	float outer_cone_ratio;
 };

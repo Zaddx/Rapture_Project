@@ -96,6 +96,7 @@ namespace DX11UWA
 		// Liights
 		DirectionalLight floor_directional_light;
 		PointLight floor_point_light;
+		SpotLight floor_spot_light;
 		////////////////////////////////////////////////////////////////
 		//                  BEGIN FLOOR MODEL STUFF                   //
 		////////////////////////////////////////////////////////////////
