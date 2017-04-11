@@ -94,6 +94,8 @@ void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Prepare to pass the updated model matrix to the shader
 	XMStoreFloat4x4(&m_constantBufferData.model, (XMMatrixRotationY(0)));
+	XMStoreFloat4x4(&m_constantBufferData.model, (XMMatrixTranslation(0.0f, 10.0f, 0.0f)));
+
 
 	// Translate the position (Big Daddy)
 	XMMATRIX bigDaddy_rotationY = XMMatrixRotationY(radians);
@@ -385,7 +387,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Move down the floor, so it's below the big daddys feet
 		for (unsigned int i = 0; i < floor_vertices.size(); i++)
 		{
-			floor_vertices[i].pos.y -= 0.35f;
+			floor_vertices[i].pos.y -= 10.35f;
 		}
 
 #if 0
@@ -423,7 +425,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 		{
 			// Initialize the point light data
-			floor_point_light.position = { 0.0f, 0.0f, 0.0f };
+			floor_point_light.position = { 0.0f, -10.0f, 0.0f };
 			floor_point_light.color = { 1.0f, 0.945f, 0.878f };
 			floor_point_light.radius = .5f;
 
@@ -684,6 +686,12 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		std::vector<unsigned int> bigDaddy_indices;
 
 		loadOBJ("Assets/Models/Big_Daddy.obj", bigDaddy_vertices, bigDaddy_indices, bigDaddy_normals, bigDaddy_uvs);
+
+		// Move down the big daddy, so the floor is below his feet
+		for (unsigned int i = 0; i < bigDaddy_vertices.size(); i++)
+		{
+			bigDaddy_vertices[i].pos.y -= 10.00f;
+		}
 
 		D3D11_SUBRESOURCE_DATA bigDaddy_vertexBufferData = { 0 };
 		bigDaddy_vertexBufferData.pSysMem = bigDaddy_vertices.data();
