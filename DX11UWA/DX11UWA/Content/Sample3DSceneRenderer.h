@@ -37,6 +37,7 @@ namespace DX11UWA
 	private:
 		void Rotate(float radians);
 		void UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd);
+		void UpdateLights();
 
 	private:
 		// Cached pointer to device resources.
@@ -92,6 +93,9 @@ namespace DX11UWA
 		// Floor
 		Model floor_model;
 		ModelViewProjectionConstantBuffer m_constantBufferData_floor;
+
+		// Temporary Variables to use for updating
+		std::vector<DX11UWA::VertexPositionUVNormal> floor_vertices_updater;
 
 		// Liights
 		DirectionalLight floor_directional_light;

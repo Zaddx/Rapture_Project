@@ -87,6 +87,25 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	// Update or move camera here
 	UpdateCamera(timer, 1.0f, 0.75f);
 
+	// Update lights
+	// Point Light
+	float x_inc_point = 0.1f;
+	float x_inc_spot = 0.1f;
+
+	// Update the position of the point light
+	if (floor_point_light.position.x >= 2.0f || floor_point_light.position.x <= -2.0f)
+		x_inc_point *= 1.0f;
+
+	floor_point_light.position.x += x_inc_point;
+
+	// Update the position of the spot light
+	if (floor_spot_light.position.x >= 2.0f || floor_spot_light.position.x <= -2.0f)
+		x_inc_spot *= 1.0f;
+
+	floor_spot_light.position.x += x_inc_spot;
+
+	// Update the Lights
+	UpdateLights();
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -301,9 +320,6 @@ void Sample3DSceneRenderer::Render(void)
 		return;
 	}
 
-	//ID3D11ShaderResourceView** texViews[] = { bigDaddyMeshSRV.GetAddressOf() };
-	//context->PSSetShaderResources(0, 1, *texViews);
-
 	XMStoreFloat4x4(&m_constantBufferData_floor.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 
 	// Setup Vertex Buffer
@@ -390,12 +406,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			floor_vertices[i].pos.y -= 10.35f;
 		}
 
+		floor_vertices_updater = floor_vertices;
 
 		// Set the new color of the surface
 		DirectX::XMFLOAT2 overall_result = { 0.0f, 0.0f };
 
 		// Initialize the point light data
-		floor_point_light.position = { 0.0f, -10.0f, 0.0f };
+		//floor_point_light.position = { 0.0f, -10.0f, 0.0f };
 		floor_point_light.color = { 1.0f, 0.945f, 0.878f };
 		floor_point_light.radius = .5f;
 		DirectX::XMFLOAT3 lightPosition = floor_point_light.position;
@@ -717,4 +734,80 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources(void)
 	m_constantBuffer.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
+}
+
+void Sample3DSceneRenderer::UpdateLights()
+{
+	DirectX::XMFLOAT2 overall_result = { 0.0f, 0.0f };
+
+	DirectX::XMFLOAT3 lightPosition = floor_point_light.position;
+	DirectX::XMFLOAT3 lightColor = floor_point_light.color;
+	float lightRadius = floor_point_light.radius;
+
+	DirectX::XMFLOAT3 spotLightPosition = floor_spot_light.position;
+	DirectX::XMFLOAT3 spotLightColor = floor_spot_light.color;
+	DirectX::XMFLOAT3 coneDirection = Vector_Normalize(floor_spot_light.cone_direction);
+	float coneRatio = floor_spot_light.cone_ratio;
+	float innerConeRatio = floor_spot_light.inner_cone_ratio;
+	float outerConeRatio = floor_spot_light.outer_cone_ratio;
+
+	for (unsigned int i = 0; i < floor_vertices_updater.size(); i++)
+	{
+		DirectX::XMFLOAT3 surfacePosition = floor_vertices_updater[i].pos;
+		DirectX::XMFLOAT3 surfaceNormal = floor_vertices_updater[i].normal;
+		DirectX::XMFLOAT2 surfaceColor = floor_vertices_updater[i].uv;
+
+#pragma region Point Light
+
+		{
+			float attenuation;
+			DirectX::XMFLOAT3 lightDirection;
+			DirectX::XMFLOAT2 result;
+
+			lightDirection = Vector_Normalize(Vector_Subtraction(lightPosition, surfacePosition));
+
+			attenuation = 1.0f - Clamp(Vector_Length(Vector_Subtraction(lightPosition, surfacePosition)) - lightRadius, 1.0f, 0.0f);
+			result.x = attenuation * lightColor.x * surfaceColor.x;
+			result.y = attenuation * lightColor.y * surfaceColor.y;
+
+			overall_result.x = result.x;
+			overall_result.y = result.y;
+		}
+
+#pragma endregion
+
+#pragma region Spot Light
+		{
+			float attenuation;
+			float surfaceRatio;
+			float spotFactor;
+			DirectX::XMFLOAT3 lightDirection;
+			DirectX::XMFLOAT2 result;
+
+			lightDirection = Vector_Normalize(Vector_Subtraction(spotLightPosition, surfacePosition));
+
+			surfaceRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(lightDirection, -1.0f), coneDirection), 1.0f, 0.0f);
+
+			spotFactor = (surfaceRatio > coneRatio) ? 1 : 0;
+
+			attenuation = 1.0f - Clamp((innerConeRatio - surfaceRatio) / (innerConeRatio - outerConeRatio), 1.0f, 0.0f);
+
+			result.x = spotFactor * attenuation * spotLightColor.x * surfaceColor.x;
+			result.y = spotFactor * attenuation * spotLightColor.y * surfaceColor.y;
+
+			overall_result.x += result.x;
+			overall_result.y += result.y;
+		}
+#pragma endregion
+
+		floor_vertices_updater[i].uv = overall_result;
+	}
+
+
+	D3D11_SUBRESOURCE_DATA floor_vertexBufferData = { 0 };
+	floor_vertexBufferData.pSysMem = floor_vertices_updater.data();
+	floor_vertexBufferData.SysMemPitch = 0;
+	floor_vertexBufferData.SysMemSlicePitch = 0;
+	CD3D11_BUFFER_DESC floor_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * floor_vertices_updater.size(), D3D11_BIND_VERTEX_BUFFER);
+	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&floor_vertexBufferDesc, &floor_vertexBufferData, &floor_model._vertexBuffer));
 }

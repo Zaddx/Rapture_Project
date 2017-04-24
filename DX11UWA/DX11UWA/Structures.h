@@ -36,7 +36,7 @@ struct DirectionalLight {
 };
 
 struct PointLight {
-	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 position = { 0.0f, -10.0f, 0.0f };
 	DirectX::XMFLOAT3 color;
 	float radius;
 };
