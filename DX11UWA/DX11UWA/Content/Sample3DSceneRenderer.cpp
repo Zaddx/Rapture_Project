@@ -88,21 +88,48 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	UpdateCamera(timer, 1.0f, 0.75f);
 
 	// Update lights
-	// Point Light
-	float x_inc_point = 0.1f;
-	float x_inc_spot = 0.1f;
+	// Update the directional light
+	//float x_inc_dir = 0.1f;
+	//float z_inc_dir = 0.1f;
 
-	// Update the position of the point light
-	if (floor_point_light.position.x >= 2.0f || floor_point_light.position.x <= -2.0f)
-		x_inc_point *= 1.0f;
+	//if (floor_directional_light.direction.x >= 2.0f || floor_directional_light.direction.x <= -2.0f)
+	//	x_inc_dir *= -1.0f;
 
-	floor_point_light.position.x += x_inc_point;
+	//if (floor_directional_light.direction.z >= 2.0f || floor_directional_light.direction.z <= -2.0f)
+	//	z_inc_dir *= 1.0f;
+
+	//floor_directional_light.direction.x += x_inc_dir;
+	//floor_directional_light.direction.z += z_inc_dir;
+
+	//// Point Light
+	//float x_inc_point = 0.1f;
+
+	//// Update the position of the point light
+	//if (floor_point_light.position.x >= 2.0f || floor_point_light.position.x <= -2.0f)
+	//	x_inc_point *= -1.0f;
+
+	//floor_point_light.position.x += x_inc_point;
 
 	// Update the position of the spot light
-	if (floor_spot_light.position.x >= 2.0f || floor_spot_light.position.x <= -2.0f)
-		x_inc_spot *= 1.0f;
+	float x_inc_spot_pos = 0.01f;
+	float z_inc_spot_pos = 0.01f;
+	float x_inc_spot_dir = 0.01f;
+	float z_inc_spot_dir = 0.01f;
 
-	floor_spot_light.position.x += x_inc_spot;
+	if (floor_spot_light.position.x >= 0.25f || floor_spot_light.position.x <= -0.25f)
+		x_inc_spot_pos *= -1.0f;
+	if (floor_spot_light.position.z >= 0.25f || floor_spot_light.position.z <= -0.25f)
+		z_inc_spot_pos *= -1.0f;
+
+	if (floor_spot_light.cone_direction.x >= 0.25f || floor_spot_light.cone_direction.x <= -0.25f)
+		x_inc_spot_pos *= -1.0f;
+	if (floor_spot_light.cone_direction.z >= 0.25f || floor_spot_light.cone_direction.z <= -0.25f)
+		z_inc_spot_pos *= -1.0f;
+
+	floor_spot_light.position.x += x_inc_spot_pos;
+	floor_spot_light.position.z += z_inc_spot_pos;
+	floor_spot_light.cone_direction.x += x_inc_spot_dir;
+	//floor_spot_light.cone_direction.z += z_inc_spot_dir;
 
 	// Update the Lights
 	UpdateLights();
@@ -411,9 +438,15 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Set the new color of the surface
 		DirectX::XMFLOAT2 overall_result = { 0.0f, 0.0f };
 
+		// Initialize the directional light data
+		floor_directional_light.direction = { 0.0f, -0.35f, 1.0f };
+		floor_directional_light.color = { 0.250980f , 0.611764f, 1.0f };
+		DirectX::XMFLOAT3 directionalLightDirection = floor_directional_light.direction;
+		DirectX::XMFLOAT3 directionalLightColor = floor_directional_light.color;
+
 		// Initialize the point light data
 		//floor_point_light.position = { 0.0f, -10.0f, 0.0f };
-		floor_point_light.color = { 1.0f, 0.945f, 0.878f };
+		floor_point_light.color = { 0.788f, 0.886f, 1.0f };
 		floor_point_light.radius = .5f;
 		DirectX::XMFLOAT3 lightPosition = floor_point_light.position;
 		DirectX::XMFLOAT3 lightColor = floor_point_light.color;
@@ -439,37 +472,26 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			DirectX::XMFLOAT3 surfaceNormal = floor_vertices[i].normal;
 			DirectX::XMFLOAT2 surfaceColor = floor_vertices[i].uv;
 
-#if 0
 #pragma region Directional Light
 
-			floor_directional_light.direction = { 0.0f, 0.35f, 0.0f };
-			floor_directional_light.color = { 1.0f, 0.945f, 0.878f };
-
-			DirectX::XMFLOAT3 lightDirection = floor_directional_light.direction;
-			DirectX::XMFLOAT3 lightColor = floor_directional_light.color;
-
-			for (unsigned int i = 0; i < floor_vertices.size(); i++)
 			{
-				DirectX::XMFLOAT3 surfaceNormal = floor_vertices[i].normal;
-				DirectX::XMFLOAT2 surfaceColor = floor_vertices[i].uv;
-
 				float lightRatio;
 				DirectX::XMFLOAT2 result;
 
-				lightRatio = Clamp(Vector_Dot(lightDirection, surfaceNormal), 1.0f, 0.0f);
-				result.x = lightRatio * lightColor.x * surfaceColor.x;
-				result.y = lightRatio * lightColor.y * surfaceColor.y;
+				lightRatio = Clamp(Vector_Dot(directionalLightDirection, surfaceNormal), 1.0f, 0.0f);
+				result.x = lightRatio * directionalLightColor.x * surfaceColor.x;
+				result.y = lightRatio * directionalLightColor.y * surfaceColor.y;
 
-				floor_vertices[i].uv = result;
+				overall_result.x = result.x;
+				overall_result.y = result.y;
 			}
 
 #pragma endregion
-#endif 
 
 #pragma region Point Light
 
 			{
-				float attenuation;
+				/*float attenuation;
 				DirectX::XMFLOAT3 lightDirection;
 				DirectX::XMFLOAT2 result;
 
@@ -479,15 +501,15 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 				result.x = attenuation * lightColor.x * surfaceColor.x;
 				result.y = attenuation * lightColor.y * surfaceColor.y;
 
-				overall_result.x = result.x;
-				overall_result.y = result.y;
+				overall_result.x += result.x;
+				overall_result.y += result.y;*/
 			}
 
 #pragma endregion
 
 #pragma region Spot Light
 			{
-				float attenuation;
+				/*float attenuation;
 				float surfaceRatio;
 				float spotFactor;
 				DirectX::XMFLOAT3 lightDirection;
@@ -505,7 +527,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 				result.y = spotFactor * attenuation * spotLightColor.y * surfaceColor.y;
 
 				overall_result.x += result.x;
-				overall_result.y += result.y;
+				overall_result.y += result.y;*/
 			}
 #pragma endregion
 
