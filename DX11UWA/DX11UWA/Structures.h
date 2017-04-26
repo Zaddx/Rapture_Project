@@ -31,21 +31,21 @@ struct Model
 };
 
 struct DirectionalLight {
-	DirectX::XMFLOAT3 direction;
-	DirectX::XMFLOAT3 color;
+	DirectX::XMFLOAT4 direction;
+	DirectX::XMFLOAT4 color;
 };
 
 struct PointLight {
-	DirectX::XMFLOAT3 position = { 0.0f, -10.0f, 0.0f };
-	DirectX::XMFLOAT3 color;
-	float radius;
+	DirectX::XMFLOAT4 position;
+	DirectX::XMFLOAT4 color;
+	DirectX::XMFLOAT4 radius;
 };
 
 struct SpotLight {
-	DirectX::XMFLOAT3 position;
-	DirectX::XMFLOAT3 color;
-	DirectX::XMFLOAT3 cone_direction;
-	float cone_ratio;
-	float inner_cone_ratio;
-	float outer_cone_ratio;
+	DirectX::XMFLOAT4 position;
+	DirectX::XMFLOAT4 color;
+	DirectX::XMFLOAT4 cone_direction;
+	DirectX::XMFLOAT4 cone_ratio;
+	DirectX::XMFLOAT4 inner_cone_ratio;
+	DirectX::XMFLOAT4 outer_cone_ratio;
 };

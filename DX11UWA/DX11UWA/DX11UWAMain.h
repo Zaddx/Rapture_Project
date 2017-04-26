@@ -30,10 +30,14 @@ namespace DX11UWA
 		// Cached pointer to device resources.
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
 
+		std::shared_ptr<DX::DeviceResources> m_deviceResources2;
+
 		// TODO: Replace with your own content renderers.
 		std::unique_ptr<Sample3DSceneRenderer> m_sceneRenderer;
 		std::unique_ptr<SampleFpsTextRenderer> m_fpsTextRenderer;
 
+		std::unique_ptr<Sample3DSceneRenderer> m_sceneRenderer2;
+		std::unique_ptr<SampleFpsTextRenderer> m_fpsTextRenderer2;
 		// Rendering loop timer.
 		DX::StepTimer m_timer;
 

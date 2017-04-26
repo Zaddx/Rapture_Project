@@ -57,6 +57,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData_big_daddy.projection, (perspectiveMatrix * orientationMatrix));
 	XMStoreFloat4x4(&m_constantBufferData_floor.projection, (perspectiveMatrix * orientationMatrix));
 
+
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	static const XMVECTORF32 eye = { 0.0f, 0.7f, -1.5f, 0.0f };
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
@@ -68,6 +69,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData.view, (XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_constantBufferData_big_daddy.view, (XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_constantBufferData_floor.view, (XMMatrixLookAtLH(eye, at, up)));
+
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -89,32 +91,45 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 	// Update lights
 	// Update the directional light
-	//float x_inc_dir = 0.1f;
-	//float z_inc_dir = 0.1f;
+	static float y_inc_dir = timer.GetElapsedSeconds() * -1.0f;
+	float directional_light_boundaries = 4.0f;
 
-	//if (floor_directional_light.direction.x >= 2.0f || floor_directional_light.direction.x <= -2.0f)
-	//	x_inc_dir *= -1.0f;
+	if (floor_directional_light.direction.z >= directional_light_boundaries)
+	{
+		floor_directional_light.direction.z += directional_light_boundaries;
+		y_inc_dir *= -1.0f;
+	}
+	if (floor_directional_light.direction.z <= -directional_light_boundaries)
+	{
+		floor_directional_light.direction.z += directional_light_boundaries;
+		y_inc_dir *= -1.0f;
+	}
 
-	//if (floor_directional_light.direction.z >= 2.0f || floor_directional_light.direction.z <= -2.0f)
-	//	z_inc_dir *= 1.0f;
+	floor_directional_light.direction.z += y_inc_dir;
 
-	//floor_directional_light.direction.x += x_inc_dir;
-	//floor_directional_light.direction.z += z_inc_dir;
+	// Point Light
+	static float x_inc_point = timer.GetElapsedSeconds();
+	float point_light_boundaries = 4.0f;
 
-	//// Point Light
-	//float x_inc_point = 0.1f;
+	// Update the position of the point light
+	if (floor_point_light.position.x >= point_light_boundaries)
+	{
+		floor_point_light.position.x = point_light_boundaries;
+		x_inc_point *= -1.0f;
+	}
 
-	//// Update the position of the point light
-	//if (floor_point_light.position.x >= 2.0f || floor_point_light.position.x <= -2.0f)
-	//	x_inc_point *= -1.0f;
+	if (floor_point_light.position.x <= -point_light_boundaries)
+	{
+		floor_point_light.position.x = -point_light_boundaries;
+		x_inc_point *= -1.0f;
+	}
 
-	//floor_point_light.position.x += x_inc_point;
+	floor_point_light.position.x += x_inc_point;
 
 	// Update the position of the spot light
-	float x_inc_spot_pos = 0.01f;
-	float z_inc_spot_pos = 0.01f;
-	float x_inc_spot_dir = 0.01f;
-	float z_inc_spot_dir = 0.01f;
+	static float x_inc_spot_pos = timer.GetElapsedSeconds();
+	static float z_inc_spot_pos = timer.GetElapsedSeconds();
+	static float x_inc_spot_dir = timer.GetElapsedSeconds();
 
 	if (floor_spot_light.position.x >= 0.25f || floor_spot_light.position.x <= -0.25f)
 		x_inc_spot_pos *= -1.0f;
@@ -122,14 +137,11 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		z_inc_spot_pos *= -1.0f;
 
 	if (floor_spot_light.cone_direction.x >= 0.25f || floor_spot_light.cone_direction.x <= -0.25f)
-		x_inc_spot_pos *= -1.0f;
-	if (floor_spot_light.cone_direction.z >= 0.25f || floor_spot_light.cone_direction.z <= -0.25f)
-		z_inc_spot_pos *= -1.0f;
+		x_inc_spot_dir *= -1.0f;
 
 	floor_spot_light.position.x += x_inc_spot_pos;
 	floor_spot_light.position.z += z_inc_spot_pos;
 	floor_spot_light.cone_direction.x += x_inc_spot_dir;
-	//floor_spot_light.cone_direction.z += z_inc_spot_dir;
 
 	// Update the Lights
 	UpdateLights();
@@ -267,8 +279,12 @@ void Sample3DSceneRenderer::StopTracking(void)
 }
 
 // Renders one frame using the vertex and pixel shaders.
-void Sample3DSceneRenderer::Render(void)
+void Sample3DSceneRenderer::Render(DirectX::XMFLOAT4X4 view_matrix)
 {
+	m_constantBufferData.view = view_matrix;
+	m_constantBufferData_big_daddy.view = view_matrix;
+	m_constantBufferData_floor.view = view_matrix;
+
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
 #pragma region Skybox
@@ -309,34 +325,34 @@ void Sample3DSceneRenderer::Render(void)
 
 #pragma region Big Daddy Model
 
-	if (!big_daddy_model._loadingComplete)
-	{
-		return;
-	}
+	//if (!big_daddy_model._loadingComplete)
+	//{
+	//	return;
+	//}
 
-	ID3D11ShaderResourceView** texViews[] = { bigDaddyMeshSRV.GetAddressOf() };
-	context->PSSetShaderResources(0, 1, *texViews);
+	//ID3D11ShaderResourceView** texViews[] = { bigDaddyMeshSRV.GetAddressOf() };
+	//context->PSSetShaderResources(0, 1, *texViews);
 
-	XMStoreFloat4x4(&m_constantBufferData_big_daddy.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+	//XMStoreFloat4x4(&m_constantBufferData_big_daddy.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 
-	// Setup Vertex Buffer
-	UINT bigDaddy_stride = sizeof(DX11UWA::VertexPositionUVNormal);
-	UINT bigDaddy_offset = 0;
-	context->IASetVertexBuffers(0, 1, big_daddy_model._vertexBuffer.GetAddressOf(), &bigDaddy_stride, &bigDaddy_offset);
+	//// Setup Vertex Buffer
+	//UINT bigDaddy_stride = sizeof(DX11UWA::VertexPositionUVNormal);
+	//UINT bigDaddy_offset = 0;
+	//context->IASetVertexBuffers(0, 1, big_daddy_model._vertexBuffer.GetAddressOf(), &bigDaddy_stride, &bigDaddy_offset);
 
-	// Set Index buffer
-	context->IASetIndexBuffer(big_daddy_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	context->IASetInputLayout(big_daddy_model._inputLayout.Get());
+	//// Set Index buffer
+	//context->IASetIndexBuffer(big_daddy_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	//context->IASetInputLayout(big_daddy_model._inputLayout.Get());
 
-	context->UpdateSubresource1(big_daddy_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_big_daddy, 0, 0, 0);
+	//context->UpdateSubresource1(big_daddy_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_big_daddy, 0, 0, 0);
 
-	// Attach our vertex shader.
-	context->VSSetShader(big_daddy_model._vertexShader.Get(), nullptr, 0);
+	//// Attach our vertex shader.
+	//context->VSSetShader(big_daddy_model._vertexShader.Get(), nullptr, 0);
 
-	// Attach our pixel shader.
-	context->PSSetShader(big_daddy_model._pixelShader.Get(), nullptr, 0);
+	//// Attach our pixel shader.
+	//context->PSSetShader(big_daddy_model._pixelShader.Get(), nullptr, 0);
 
-	context->DrawIndexed(big_daddy_model._indexCount, 0, 0);
+	//context->DrawIndexed(big_daddy_model._indexCount, 0, 0);
 
 #pragma endregion
 
@@ -359,6 +375,16 @@ void Sample3DSceneRenderer::Render(void)
 	context->IASetInputLayout(floor_model._inputLayout.Get());
 
 	context->UpdateSubresource1(floor_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_floor, 0, 0, 0);
+
+	// Update subresources for the lights
+	context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &floor_point_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &floor_directional_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &floor_spot_light, 0, 0, 0);
+
+	// Set the light constant buffers to the floor
+	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
+	context->PSSetConstantBuffers1(1, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
+	context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
 
 	// Attach our vertex shader.
 	context->VSSetShader(floor_model._vertexShader.Get(), nullptr, 0);
@@ -408,6 +434,11 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &floor_model._constantBuffer));
+
+		// Create the constant buffers for the floor lights
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_pointLight));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_spotLight));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_directionalLight));
 	});
 
 	// Once both shaders are loaded, create the mesh.
@@ -425,6 +456,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		{
 			floor_vertices[i].uv.x = 0.5f;
 			floor_vertices[i].uv.y = 0.0f;
+			floor_vertices[i].normal = DirectX::XMFLOAT3(0, 1, 0);
 		}
 
 		// Move down the floor, so it's below the big daddys feet
@@ -439,100 +471,89 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		DirectX::XMFLOAT2 overall_result = { 0.0f, 0.0f };
 
 		// Initialize the directional light data
-		floor_directional_light.direction = { 0.0f, -0.35f, 1.0f };
-		floor_directional_light.color = { 0.250980f , 0.611764f, 1.0f };
-		DirectX::XMFLOAT3 directionalLightDirection = floor_directional_light.direction;
-		DirectX::XMFLOAT3 directionalLightColor = floor_directional_light.color;
+		floor_directional_light.direction = { 0.0f, -2.0f, 1.0f, 0.0f };
+		floor_directional_light.color = { 0.250980f , 0.611764f, 1.0f, 0.0f };
 
 		// Initialize the point light data
-		//floor_point_light.position = { 0.0f, -10.0f, 0.0f };
-		floor_point_light.color = { 0.788f, 0.886f, 1.0f };
-		floor_point_light.radius = .5f;
-		DirectX::XMFLOAT3 lightPosition = floor_point_light.position;
-		DirectX::XMFLOAT3 lightColor = floor_point_light.color;
-		float lightRadius = floor_point_light.radius;
+		floor_point_light.position = { 0.0f, 2.0f, 0.0f, 0.0f };
+		floor_point_light.color = { 0.788f, 0.886f, 1.0f, 0.0f };
+		floor_point_light.radius.x = 3.0f;
 
 		// Initialize the spot light data
-		floor_spot_light.position = { 0.0f, 2.0f, 0.0f };
-		floor_spot_light.color = { 1.0f, 0.945f, 0.878f };
-		floor_spot_light.cone_direction = { 0.0f, -0.35f, -0.1f };
-		floor_spot_light.cone_ratio = 0.5f;
-		floor_spot_light.inner_cone_ratio = 0.96f;
-		floor_spot_light.outer_cone_ratio = 0.95f;
-		DirectX::XMFLOAT3 spotLightPosition = floor_spot_light.position;
-		DirectX::XMFLOAT3 spotLightColor = floor_spot_light.color;
-		DirectX::XMFLOAT3 coneDirection = Vector_Normalize(floor_spot_light.cone_direction);
-		float coneRatio = floor_spot_light.cone_ratio;
-		float innerConeRatio = floor_spot_light.inner_cone_ratio;
-		float outerConeRatio = floor_spot_light.outer_cone_ratio;
+		floor_spot_light.position = { 0.0f, 2.0f, 0.0f, 0.0f };
+		floor_spot_light.color = { 1.0f, 0.945f, 0.878f, 0.0f };
+		floor_spot_light.cone_direction = { 0.0f, -0.35f, -0.1f, 0.0f };
+		floor_spot_light.cone_ratio.x = 0.5f;
+		floor_spot_light.inner_cone_ratio.x = 0.96f;
+		floor_spot_light.outer_cone_ratio.x = 0.95f;
 
-		for (unsigned int i = 0; i < floor_vertices.size(); i++)
-		{
-			DirectX::XMFLOAT3 surfacePosition = floor_vertices[i].pos;
-			DirectX::XMFLOAT3 surfaceNormal = floor_vertices[i].normal;
-			DirectX::XMFLOAT2 surfaceColor = floor_vertices[i].uv;
-
-#pragma region Directional Light
-
-			{
-				float lightRatio;
-				DirectX::XMFLOAT2 result;
-
-				lightRatio = Clamp(Vector_Dot(directionalLightDirection, surfaceNormal), 1.0f, 0.0f);
-				result.x = lightRatio * directionalLightColor.x * surfaceColor.x;
-				result.y = lightRatio * directionalLightColor.y * surfaceColor.y;
-
-				overall_result.x = result.x;
-				overall_result.y = result.y;
-			}
-
-#pragma endregion
-
-#pragma region Point Light
-
-			{
-				/*float attenuation;
-				DirectX::XMFLOAT3 lightDirection;
-				DirectX::XMFLOAT2 result;
-
-				lightDirection = Vector_Normalize(Vector_Subtraction(lightPosition, surfacePosition));
-
-				attenuation = 1.0f - Clamp(Vector_Length(Vector_Subtraction(lightPosition, surfacePosition)) - lightRadius, 1.0f, 0.0f);
-				result.x = attenuation * lightColor.x * surfaceColor.x;
-				result.y = attenuation * lightColor.y * surfaceColor.y;
-
-				overall_result.x += result.x;
-				overall_result.y += result.y;*/
-			}
-
-#pragma endregion
-
-#pragma region Spot Light
-			{
-				/*float attenuation;
-				float surfaceRatio;
-				float spotFactor;
-				DirectX::XMFLOAT3 lightDirection;
-				DirectX::XMFLOAT2 result;
-
-				lightDirection = Vector_Normalize(Vector_Subtraction(spotLightPosition, surfacePosition));
-
-				surfaceRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(lightDirection, -1.0f), coneDirection), 1.0f, 0.0f);
-
-				spotFactor = (surfaceRatio > coneRatio) ? 1 : 0;
-
-				attenuation = 1.0f - Clamp((innerConeRatio - surfaceRatio) / (innerConeRatio - outerConeRatio), 1.0f, 0.0f);
-
-				result.x = spotFactor * attenuation * spotLightColor.x * surfaceColor.x;
-				result.y = spotFactor * attenuation * spotLightColor.y * surfaceColor.y;
-
-				overall_result.x += result.x;
-				overall_result.y += result.y;*/
-			}
-#pragma endregion
-
-			floor_vertices[i].uv = overall_result;
-		}
+//		for (unsigned int i = 0; i < floor_vertices.size(); i++)
+//		{
+//			DirectX::XMFLOAT3 surfacePosition = floor_vertices[i].pos;
+//			DirectX::XMFLOAT3 surfaceNormal = floor_vertices[i].normal;
+//			DirectX::XMFLOAT2 surfaceColor = floor_vertices[i].uv;
+//
+//#pragma region Directional Light
+//
+//			{
+//				/*float lightRatio;
+//				DirectX::XMFLOAT2 result;
+//
+//				lightRatio = Clamp(Vector_Dot(directionalLightDirection, surfaceNormal), 1.0f, 0.0f);
+//				result.x = lightRatio * directionalLightColor.x * surfaceColor.x;
+//				result.y = lightRatio * directionalLightColor.y * surfaceColor.y;
+//
+//				overall_result.x = result.x;
+//				overall_result.y = result.y;*/
+//			}
+//
+//#pragma endregion
+//
+//#pragma region Point Light
+//
+//			{
+//				/*float attenuation;
+//				DirectX::XMFLOAT3 lightDirection;
+//				DirectX::XMFLOAT2 result;
+//
+//				lightDirection = Vector_Normalize(Vector_Subtraction(lightPosition, surfacePosition));
+//
+//				attenuation = 1.0f - Clamp(Vector_Length(Vector_Subtraction(lightPosition, surfacePosition)) - lightRadius, 1.0f, 0.0f);
+//				result.x = attenuation * lightColor.x * surfaceColor.x;
+//				result.y = attenuation * lightColor.y * surfaceColor.y;
+//
+//				overall_result.x += result.x;
+//				overall_result.y += result.y;*/
+//			}
+//
+//#pragma endregion
+//
+//#pragma region Spot Light
+//			{
+//				/*float attenuation;
+//				float surfaceRatio;
+//				float spotFactor;
+//				DirectX::XMFLOAT3 lightDirection;
+//				DirectX::XMFLOAT2 result;
+//
+//				lightDirection = Vector_Normalize(Vector_Subtraction(spotLightPosition, surfacePosition));
+//
+//				surfaceRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(lightDirection, -1.0f), coneDirection), 1.0f, 0.0f);
+//
+//				spotFactor = (surfaceRatio > coneRatio) ? 1 : 0;
+//
+//				attenuation = 1.0f - Clamp((innerConeRatio - surfaceRatio) / (innerConeRatio - outerConeRatio), 1.0f, 0.0f);
+//
+//				result.x = spotFactor * attenuation * spotLightColor.x * surfaceColor.x;
+//				result.y = spotFactor * attenuation * spotLightColor.y * surfaceColor.y;
+//
+//				overall_result.x += result.x;
+//				overall_result.y += result.y;*/
+//			}
+//#pragma endregion
+//
+//			floor_vertices[i].uv = overall_result;
+//		}
 			
 
 		D3D11_SUBRESOURCE_DATA floor_vertexBufferData = { 0 };
@@ -667,81 +688,81 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma region Big Daddy Model
 
-	auto context = m_deviceResources->GetD3DDeviceContext();
-	ID3D11Device *device;
-	context->GetDevice(&device);
+	//auto context = m_deviceResources->GetD3DDeviceContext();
+	//ID3D11Device *device;
+	//context->GetDevice(&device);
 
-	const char *path = "Assets/Textures/Big_Daddy_Texture.dds";
+	//const char *path = "Assets/Textures/Big_Daddy_Texture.dds";
 
-	size_t pathSize = strlen(path) + 1;
-	wchar_t *wc = new wchar_t[pathSize];
-	mbstowcs(&wc[0], path, pathSize);
+	//size_t pathSize = strlen(path) + 1;
+	//wchar_t *wc = new wchar_t[pathSize];
+	//mbstowcs(&wc[0], path, pathSize);
 
-	HRESULT hr;
-	hr = CreateDDSTextureFromFile(device, wc, &texture, &bigDaddyMeshSRV);
+	//HRESULT hr;
+	//hr = CreateDDSTextureFromFile(device, wc, &texture, &bigDaddyMeshSRV);
 
-	// After the vertex shader file is loaded, create the shader and input layout.
-	auto createVSBigDaddyTaskModel = loadVSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
-	{
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._vertexShader));
+	//// After the vertex shader file is loaded, create the shader and input layout.
+	//auto createVSBigDaddyTaskModel = loadVSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
+	//{
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._vertexShader));
 
-		static const D3D11_INPUT_ELEMENT_DESC bigDaddy_vertexDesc[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
+	//	static const D3D11_INPUT_ELEMENT_DESC bigDaddy_vertexDesc[] =
+	//	{
+	//		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//		{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	};
 
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(bigDaddy_vertexDesc, ARRAYSIZE(bigDaddy_vertexDesc), &bigDaddy_fileData[0], bigDaddy_fileData.size(), &big_daddy_model._inputLayout));
-	});
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(bigDaddy_vertexDesc, ARRAYSIZE(bigDaddy_vertexDesc), &bigDaddy_fileData[0], bigDaddy_fileData.size(), &big_daddy_model._inputLayout));
+	//});
 
-	// After the pixel shader file is loaded, create the shader and constant buffer.
-	auto createPSBigDaddyTaskModel = loadPSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
-	{
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._pixelShader));
+	//// After the pixel shader file is loaded, create the shader and constant buffer.
+	//auto createPSBigDaddyTaskModel = loadPSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
+	//{
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._pixelShader));
 
-		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &big_daddy_model._constantBuffer));
-	});
+	//	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &big_daddy_model._constantBuffer));
+	//});
 
-	// Once both shaders are loaded, create the mesh.
-	auto createBigDaddyTaskModel = (createPSBigDaddyTaskModel && createVSBigDaddyTaskModel).then([this]()
-	{
-		std::vector<DX11UWA::VertexPositionUVNormal> bigDaddy_vertices;
-		std::vector<DirectX::XMFLOAT3> bigDaddy_normals;
-		std::vector<DirectX::XMFLOAT2> bigDaddy_uvs;
-		std::vector<unsigned int> bigDaddy_indices;
+	//// Once both shaders are loaded, create the mesh.
+	//auto createBigDaddyTaskModel = (createPSBigDaddyTaskModel && createVSBigDaddyTaskModel).then([this]()
+	//{
+	//	std::vector<DX11UWA::VertexPositionUVNormal> bigDaddy_vertices;
+	//	std::vector<DirectX::XMFLOAT3> bigDaddy_normals;
+	//	std::vector<DirectX::XMFLOAT2> bigDaddy_uvs;
+	//	std::vector<unsigned int> bigDaddy_indices;
 
-		loadOBJ("Assets/Models/Big_Daddy.obj", bigDaddy_vertices, bigDaddy_indices, bigDaddy_normals, bigDaddy_uvs);
+	//	loadOBJ("Assets/Models/Big_Daddy.obj", bigDaddy_vertices, bigDaddy_indices, bigDaddy_normals, bigDaddy_uvs);
 
-		// Move down the big daddy, so the floor is below his feet
-		for (unsigned int i = 0; i < bigDaddy_vertices.size(); i++)
-		{
-			bigDaddy_vertices[i].pos.y -= 10.00f;
-		}
+	//	// Move down the big daddy, so the floor is below his feet
+	//	for (unsigned int i = 0; i < bigDaddy_vertices.size(); i++)
+	//	{
+	//		bigDaddy_vertices[i].pos.y -= 10.00f;
+	//	}
 
-		D3D11_SUBRESOURCE_DATA bigDaddy_vertexBufferData = { 0 };
-		bigDaddy_vertexBufferData.pSysMem = bigDaddy_vertices.data();
-		bigDaddy_vertexBufferData.SysMemPitch = 0;
-		bigDaddy_vertexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC bigDaddy_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * bigDaddy_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_vertexBufferDesc, &bigDaddy_vertexBufferData, &big_daddy_model._vertexBuffer));
+	//	D3D11_SUBRESOURCE_DATA bigDaddy_vertexBufferData = { 0 };
+	//	bigDaddy_vertexBufferData.pSysMem = bigDaddy_vertices.data();
+	//	bigDaddy_vertexBufferData.SysMemPitch = 0;
+	//	bigDaddy_vertexBufferData.SysMemSlicePitch = 0;
+	//	CD3D11_BUFFER_DESC bigDaddy_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * bigDaddy_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_vertexBufferDesc, &bigDaddy_vertexBufferData, &big_daddy_model._vertexBuffer));
 
-		big_daddy_model._indexCount = bigDaddy_indices.size();
+	//	big_daddy_model._indexCount = bigDaddy_indices.size();
 
-		D3D11_SUBRESOURCE_DATA bigDaddy_indexBufferData = { 0 };
-		bigDaddy_indexBufferData.pSysMem = bigDaddy_indices.data();
-		bigDaddy_indexBufferData.SysMemPitch = 0;
-		bigDaddy_indexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC bigDaddy_indexBufferDesc(sizeof(unsigned int) * bigDaddy_indices.size(), D3D11_BIND_INDEX_BUFFER);
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_indexBufferDesc, &bigDaddy_indexBufferData, &big_daddy_model._indexBuffer));
-	});
+	//	D3D11_SUBRESOURCE_DATA bigDaddy_indexBufferData = { 0 };
+	//	bigDaddy_indexBufferData.pSysMem = bigDaddy_indices.data();
+	//	bigDaddy_indexBufferData.SysMemPitch = 0;
+	//	bigDaddy_indexBufferData.SysMemSlicePitch = 0;
+	//	CD3D11_BUFFER_DESC bigDaddy_indexBufferDesc(sizeof(unsigned int) * bigDaddy_indices.size(), D3D11_BIND_INDEX_BUFFER);
+	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_indexBufferDesc, &bigDaddy_indexBufferData, &big_daddy_model._indexBuffer));
+	//});
 
-	// Once the cube is loaded, the object is ready to be rendered.
-	createBigDaddyTaskModel.then([this]()
-	{
-		big_daddy_model._loadingComplete = true;
-	});
+	//// Once the cube is loaded, the object is ready to be rendered.
+	//createBigDaddyTaskModel.then([this]()
+	//{
+	//	big_daddy_model._loadingComplete = true;
+	//});
 
 #pragma endregion
 
@@ -760,76 +781,18 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources(void)
 
 void Sample3DSceneRenderer::UpdateLights()
 {
-	DirectX::XMFLOAT2 overall_result = { 0.0f, 0.0f };
+	// Get the context so I can update the lights
+	auto context = m_deviceResources->GetD3DDeviceContext();
 
-	DirectX::XMFLOAT3 lightPosition = floor_point_light.position;
-	DirectX::XMFLOAT3 lightColor = floor_point_light.color;
-	float lightRadius = floor_point_light.radius;
-
-	DirectX::XMFLOAT3 spotLightPosition = floor_spot_light.position;
-	DirectX::XMFLOAT3 spotLightColor = floor_spot_light.color;
-	DirectX::XMFLOAT3 coneDirection = Vector_Normalize(floor_spot_light.cone_direction);
-	float coneRatio = floor_spot_light.cone_ratio;
-	float innerConeRatio = floor_spot_light.inner_cone_ratio;
-	float outerConeRatio = floor_spot_light.outer_cone_ratio;
-
-	for (unsigned int i = 0; i < floor_vertices_updater.size(); i++)
-	{
-		DirectX::XMFLOAT3 surfacePosition = floor_vertices_updater[i].pos;
-		DirectX::XMFLOAT3 surfaceNormal = floor_vertices_updater[i].normal;
-		DirectX::XMFLOAT2 surfaceColor = floor_vertices_updater[i].uv;
-
-#pragma region Point Light
-
-		{
-			float attenuation;
-			DirectX::XMFLOAT3 lightDirection;
-			DirectX::XMFLOAT2 result;
-
-			lightDirection = Vector_Normalize(Vector_Subtraction(lightPosition, surfacePosition));
-
-			attenuation = 1.0f - Clamp(Vector_Length(Vector_Subtraction(lightPosition, surfacePosition)) - lightRadius, 1.0f, 0.0f);
-			result.x = attenuation * lightColor.x * surfaceColor.x;
-			result.y = attenuation * lightColor.y * surfaceColor.y;
-
-			overall_result.x = result.x;
-			overall_result.y = result.y;
-		}
-
-#pragma endregion
-
-#pragma region Spot Light
-		{
-			float attenuation;
-			float surfaceRatio;
-			float spotFactor;
-			DirectX::XMFLOAT3 lightDirection;
-			DirectX::XMFLOAT2 result;
-
-			lightDirection = Vector_Normalize(Vector_Subtraction(spotLightPosition, surfacePosition));
-
-			surfaceRatio = Clamp(Vector_Dot(Vector_Scalar_Multiply(lightDirection, -1.0f), coneDirection), 1.0f, 0.0f);
-
-			spotFactor = (surfaceRatio > coneRatio) ? 1 : 0;
-
-			attenuation = 1.0f - Clamp((innerConeRatio - surfaceRatio) / (innerConeRatio - outerConeRatio), 1.0f, 0.0f);
-
-			result.x = spotFactor * attenuation * spotLightColor.x * surfaceColor.x;
-			result.y = spotFactor * attenuation * spotLightColor.y * surfaceColor.y;
-
-			overall_result.x += result.x;
-			overall_result.y += result.y;
-		}
-#pragma endregion
-
-		floor_vertices_updater[i].uv = overall_result;
-	}
+	// Update subresources for the lights
+	context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &floor_point_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &floor_directional_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &floor_spot_light, 0, 0, 0);
 
 
-	D3D11_SUBRESOURCE_DATA floor_vertexBufferData = { 0 };
-	floor_vertexBufferData.pSysMem = floor_vertices_updater.data();
-	floor_vertexBufferData.SysMemPitch = 0;
-	floor_vertexBufferData.SysMemSlicePitch = 0;
-	CD3D11_BUFFER_DESC floor_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * floor_vertices_updater.size(), D3D11_BIND_VERTEX_BUFFER);
-	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&floor_vertexBufferDesc, &floor_vertexBufferData, &floor_model._vertexBuffer));
+	// Set the light constant buffers to the floor
+	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
+	context->PSSetConstantBuffers1(1, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
+	context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
+
 }

@@ -22,7 +22,7 @@ namespace DX11UWA
 		void CreateWindowSizeDependentResources(void);
 		void ReleaseDeviceDependentResources(void);
 		void Update(DX::StepTimer const& timer);
-		void Render(void);
+		void Render(DirectX::XMFLOAT4X4 view_matrix);
 		void StartTracking(void);
 		void TrackingUpdate(float positionX);
 		void StopTracking(void);
@@ -97,10 +97,15 @@ namespace DX11UWA
 		// Temporary Variables to use for updating
 		std::vector<DX11UWA::VertexPositionUVNormal> floor_vertices_updater;
 
-		// Liights
+		// Lights
 		DirectionalLight floor_directional_light;
 		PointLight floor_point_light;
 		SpotLight floor_spot_light;
+
+		// Light Constant Buffers & data
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_pointLight;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_directionalLight;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_spotLight;
 		////////////////////////////////////////////////////////////////
 		//                  BEGIN FLOOR MODEL STUFF                   //
 		////////////////////////////////////////////////////////////////
