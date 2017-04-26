@@ -91,24 +91,24 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 	// Update lights
 	// Update the directional light
-	static float y_inc_dir = timer.GetElapsedSeconds() * -1.0f;
-	float directional_light_boundaries = 4.0f;
+	y_inc_dir = timer.GetElapsedSeconds();
+	float directional_light_boundaries = 5.0f;
 
-	if (floor_directional_light.direction.z >= directional_light_boundaries)
+	if (floor_directional_light.direction.y >= directional_light_boundaries)
 	{
-		floor_directional_light.direction.z += directional_light_boundaries;
+		floor_directional_light.direction.y = directional_light_boundaries;
 		y_inc_dir *= -1.0f;
 	}
-	if (floor_directional_light.direction.z <= -directional_light_boundaries)
+	if (floor_directional_light.direction.y <= -directional_light_boundaries)
 	{
-		floor_directional_light.direction.z += directional_light_boundaries;
+		floor_directional_light.direction.y = -directional_light_boundaries;
 		y_inc_dir *= -1.0f;
 	}
 
-	floor_directional_light.direction.z += y_inc_dir;
+	floor_directional_light.direction.y += y_inc_dir;
 
 	// Point Light
-	static float x_inc_point = timer.GetElapsedSeconds();
+	x_inc_point = timer.GetElapsedSeconds();
 	float point_light_boundaries = 4.0f;
 
 	// Update the position of the point light
@@ -127,9 +127,9 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	floor_point_light.position.x += x_inc_point;
 
 	// Update the position of the spot light
-	static float x_inc_spot_pos = timer.GetElapsedSeconds();
-	static float z_inc_spot_pos = timer.GetElapsedSeconds();
-	static float x_inc_spot_dir = timer.GetElapsedSeconds();
+	x_inc_spot_pos = timer.GetElapsedSeconds();
+	z_inc_spot_pos = timer.GetElapsedSeconds();
+	x_inc_spot_dir = timer.GetElapsedSeconds();
 
 	if (floor_spot_light.position.x >= 0.25f || floor_spot_light.position.x <= -0.25f)
 		x_inc_spot_pos *= -1.0f;
@@ -471,7 +471,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		DirectX::XMFLOAT2 overall_result = { 0.0f, 0.0f };
 
 		// Initialize the directional light data
-		floor_directional_light.direction = { 0.0f, -2.0f, 1.0f, 0.0f };
+		floor_directional_light.direction = { 0.0f, -4.0f, 1.0f, 0.0f };
 		floor_directional_light.color = { 0.250980f , 0.611764f, 1.0f, 0.0f };
 
 		// Initialize the point light data

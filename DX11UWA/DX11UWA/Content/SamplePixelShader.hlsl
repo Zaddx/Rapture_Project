@@ -63,8 +63,10 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		attenuation = 1.0f - saturate(light_minus_surface_length / radius_point.x);
 		result = attenuation * lightColor * dot_result;
 
-		overall_result = result;
+		overall_result += result;
 	}
+
+	// Spot Light
 
 	return float4(overall_result, 1.0f);
 }
