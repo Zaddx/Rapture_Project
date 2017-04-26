@@ -325,34 +325,34 @@ void Sample3DSceneRenderer::Render(DirectX::XMFLOAT4X4 view_matrix)
 
 #pragma region Big Daddy Model
 
-	//if (!big_daddy_model._loadingComplete)
-	//{
-	//	return;
-	//}
+	if (!big_daddy_model._loadingComplete)
+	{
+		return;
+	}
 
-	//ID3D11ShaderResourceView** texViews[] = { bigDaddyMeshSRV.GetAddressOf() };
-	//context->PSSetShaderResources(0, 1, *texViews);
+	ID3D11ShaderResourceView** texViews[] = { bigDaddyMeshSRV.GetAddressOf() };
+	context->PSSetShaderResources(0, 1, *texViews);
 
-	//XMStoreFloat4x4(&m_constantBufferData_big_daddy.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+	XMStoreFloat4x4(&m_constantBufferData_big_daddy.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 
-	//// Setup Vertex Buffer
-	//UINT bigDaddy_stride = sizeof(DX11UWA::VertexPositionUVNormal);
-	//UINT bigDaddy_offset = 0;
-	//context->IASetVertexBuffers(0, 1, big_daddy_model._vertexBuffer.GetAddressOf(), &bigDaddy_stride, &bigDaddy_offset);
+	// Setup Vertex Buffer
+	UINT bigDaddy_stride = sizeof(DX11UWA::VertexPositionUVNormal);
+	UINT bigDaddy_offset = 0;
+	context->IASetVertexBuffers(0, 1, big_daddy_model._vertexBuffer.GetAddressOf(), &bigDaddy_stride, &bigDaddy_offset);
 
-	//// Set Index buffer
-	//context->IASetIndexBuffer(big_daddy_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	//context->IASetInputLayout(big_daddy_model._inputLayout.Get());
+	// Set Index buffer
+	context->IASetIndexBuffer(big_daddy_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetInputLayout(big_daddy_model._inputLayout.Get());
 
-	//context->UpdateSubresource1(big_daddy_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_big_daddy, 0, 0, 0);
+	context->UpdateSubresource1(big_daddy_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_big_daddy, 0, 0, 0);
 
-	//// Attach our vertex shader.
-	//context->VSSetShader(big_daddy_model._vertexShader.Get(), nullptr, 0);
+	// Attach our vertex shader.
+	context->VSSetShader(big_daddy_model._vertexShader.Get(), nullptr, 0);
 
-	//// Attach our pixel shader.
-	//context->PSSetShader(big_daddy_model._pixelShader.Get(), nullptr, 0);
+	// Attach our pixel shader.
+	context->PSSetShader(big_daddy_model._pixelShader.Get(), nullptr, 0);
 
-	//context->DrawIndexed(big_daddy_model._indexCount, 0, 0);
+	context->DrawIndexed(big_daddy_model._indexCount, 0, 0);
 
 #pragma endregion
 
@@ -688,81 +688,81 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma region Big Daddy Model
 
-	//auto context = m_deviceResources->GetD3DDeviceContext();
-	//ID3D11Device *device;
-	//context->GetDevice(&device);
+	auto context = m_deviceResources->GetD3DDeviceContext();
+	ID3D11Device *device;
+	context->GetDevice(&device);
 
-	//const char *path = "Assets/Textures/Big_Daddy_Texture.dds";
+	const char *path = "Assets/Textures/Big_Daddy_Texture.dds";
 
-	//size_t pathSize = strlen(path) + 1;
-	//wchar_t *wc = new wchar_t[pathSize];
-	//mbstowcs(&wc[0], path, pathSize);
+	size_t pathSize = strlen(path) + 1;
+	wchar_t *wc = new wchar_t[pathSize];
+	mbstowcs(&wc[0], path, pathSize);
 
-	//HRESULT hr;
-	//hr = CreateDDSTextureFromFile(device, wc, &texture, &bigDaddyMeshSRV);
+	HRESULT hr;
+	hr = CreateDDSTextureFromFile(device, wc, &texture, &bigDaddyMeshSRV);
 
-	//// After the vertex shader file is loaded, create the shader and input layout.
-	//auto createVSBigDaddyTaskModel = loadVSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
-	//{
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._vertexShader));
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createVSBigDaddyTaskModel = loadVSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._vertexShader));
 
-	//	static const D3D11_INPUT_ELEMENT_DESC bigDaddy_vertexDesc[] =
-	//	{
-	//		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	//		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	//		{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	//	};
+		static const D3D11_INPUT_ELEMENT_DESC bigDaddy_vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(bigDaddy_vertexDesc, ARRAYSIZE(bigDaddy_vertexDesc), &bigDaddy_fileData[0], bigDaddy_fileData.size(), &big_daddy_model._inputLayout));
-	//});
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(bigDaddy_vertexDesc, ARRAYSIZE(bigDaddy_vertexDesc), &bigDaddy_fileData[0], bigDaddy_fileData.size(), &big_daddy_model._inputLayout));
+	});
 
-	//// After the pixel shader file is loaded, create the shader and constant buffer.
-	//auto createPSBigDaddyTaskModel = loadPSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
-	//{
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._pixelShader));
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSBigDaddyTaskModel = loadPSTaskTexture.then([this](const std::vector<byte>& bigDaddy_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&bigDaddy_fileData[0], bigDaddy_fileData.size(), nullptr, &big_daddy_model._pixelShader));
 
-	//	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &big_daddy_model._constantBuffer));
-	//});
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &big_daddy_model._constantBuffer));
+	});
 
-	//// Once both shaders are loaded, create the mesh.
-	//auto createBigDaddyTaskModel = (createPSBigDaddyTaskModel && createVSBigDaddyTaskModel).then([this]()
-	//{
-	//	std::vector<DX11UWA::VertexPositionUVNormal> bigDaddy_vertices;
-	//	std::vector<DirectX::XMFLOAT3> bigDaddy_normals;
-	//	std::vector<DirectX::XMFLOAT2> bigDaddy_uvs;
-	//	std::vector<unsigned int> bigDaddy_indices;
+	// Once both shaders are loaded, create the mesh.
+	auto createBigDaddyTaskModel = (createPSBigDaddyTaskModel && createVSBigDaddyTaskModel).then([this]()
+	{
+		std::vector<DX11UWA::VertexPositionUVNormal> bigDaddy_vertices;
+		std::vector<DirectX::XMFLOAT3> bigDaddy_normals;
+		std::vector<DirectX::XMFLOAT2> bigDaddy_uvs;
+		std::vector<unsigned int> bigDaddy_indices;
 
-	//	loadOBJ("Assets/Models/Big_Daddy.obj", bigDaddy_vertices, bigDaddy_indices, bigDaddy_normals, bigDaddy_uvs);
+		loadOBJ("Assets/Models/Big_Daddy.obj", bigDaddy_vertices, bigDaddy_indices, bigDaddy_normals, bigDaddy_uvs);
 
-	//	// Move down the big daddy, so the floor is below his feet
-	//	for (unsigned int i = 0; i < bigDaddy_vertices.size(); i++)
-	//	{
-	//		bigDaddy_vertices[i].pos.y -= 10.00f;
-	//	}
+		// Move down the big daddy, so the floor is below his feet
+		for (unsigned int i = 0; i < bigDaddy_vertices.size(); i++)
+		{
+			bigDaddy_vertices[i].pos.y -= 10.00f;
+		}
 
-	//	D3D11_SUBRESOURCE_DATA bigDaddy_vertexBufferData = { 0 };
-	//	bigDaddy_vertexBufferData.pSysMem = bigDaddy_vertices.data();
-	//	bigDaddy_vertexBufferData.SysMemPitch = 0;
-	//	bigDaddy_vertexBufferData.SysMemSlicePitch = 0;
-	//	CD3D11_BUFFER_DESC bigDaddy_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * bigDaddy_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_vertexBufferDesc, &bigDaddy_vertexBufferData, &big_daddy_model._vertexBuffer));
+		D3D11_SUBRESOURCE_DATA bigDaddy_vertexBufferData = { 0 };
+		bigDaddy_vertexBufferData.pSysMem = bigDaddy_vertices.data();
+		bigDaddy_vertexBufferData.SysMemPitch = 0;
+		bigDaddy_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC bigDaddy_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * bigDaddy_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_vertexBufferDesc, &bigDaddy_vertexBufferData, &big_daddy_model._vertexBuffer));
 
-	//	big_daddy_model._indexCount = bigDaddy_indices.size();
+		big_daddy_model._indexCount = bigDaddy_indices.size();
 
-	//	D3D11_SUBRESOURCE_DATA bigDaddy_indexBufferData = { 0 };
-	//	bigDaddy_indexBufferData.pSysMem = bigDaddy_indices.data();
-	//	bigDaddy_indexBufferData.SysMemPitch = 0;
-	//	bigDaddy_indexBufferData.SysMemSlicePitch = 0;
-	//	CD3D11_BUFFER_DESC bigDaddy_indexBufferDesc(sizeof(unsigned int) * bigDaddy_indices.size(), D3D11_BIND_INDEX_BUFFER);
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_indexBufferDesc, &bigDaddy_indexBufferData, &big_daddy_model._indexBuffer));
-	//});
+		D3D11_SUBRESOURCE_DATA bigDaddy_indexBufferData = { 0 };
+		bigDaddy_indexBufferData.pSysMem = bigDaddy_indices.data();
+		bigDaddy_indexBufferData.SysMemPitch = 0;
+		bigDaddy_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC bigDaddy_indexBufferDesc(sizeof(unsigned int) * bigDaddy_indices.size(), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&bigDaddy_indexBufferDesc, &bigDaddy_indexBufferData, &big_daddy_model._indexBuffer));
+	});
 
-	//// Once the cube is loaded, the object is ready to be rendered.
-	//createBigDaddyTaskModel.then([this]()
-	//{
-	//	big_daddy_model._loadingComplete = true;
-	//});
+	// Once the cube is loaded, the object is ready to be rendered.
+	createBigDaddyTaskModel.then([this]()
+	{
+		big_daddy_model._loadingComplete = true;
+	});
 
 #pragma endregion
 
